@@ -2,9 +2,11 @@ process.title = 'apert';
 var stderr = process.stderr;
 
 // dependencies
+var http = require('http');
+var url = require('url');
+var WebSocket = require('ws');
 var express = require('express');
 var nopt = require('nopt');
-var WebSocket = require('ws');
 var osc = require('osc');
 
 // parse command-line options
@@ -44,20 +46,28 @@ if(oscPort==null) oscPort = 8080;
 var tcpPort = parsed['tcp-port'];
 if(tcpPort==null) tcpPort = 8080;
 
-// create HTTP server
-var server = express();
-server.use(express.static(__dirname));
-server.get('/?', function(req, res, next) {
+// create HTTP (Express) server
+var server = http.createServer();
+var app = express();
+app.use(express.static(__dirname));
+app.get('/?', function(req, res, next) {
   res.writeHead(302, {location: '/index.html'});
   res.end();
 });
-server.listen(tcpPort);
+server.on('request',app);
 
 // create WebSocket server
 var wss = new WebSocket.Server({server: server});
 wss.broadcast = function(data) {
   for (var i in this.clients) this.clients[i].send(data);
 };
+wss.on('connection',function(ws) {
+  var location = url.parse(ws.upgradeReq.url, true);
+  console.log("new WebSocket connection: " + location);
+});
+
+// make it go
+server.listen(tcpPort, function () { console.log('Listening on ' + server.address().port) });
 
 // create OSC server (listens on UDP port, resends OSC messages to browsers)
 var udp = new osc.UDPPort( { localAddress: "0.0.0.0", localPort: oscPort });
