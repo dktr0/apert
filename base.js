@@ -24,7 +24,12 @@ function setupWebSocket() {
     var data = JSON.parse(m.data);
     if(data.type == 'osc') {
       console.log("received " + data.address);
-      eval( data.address.substring(1) + "(data.args)");
+      var address = data.address.substring(1);
+      if(data.args.length == 0) eval(address + "()");
+      else if(data.args.length == 1) eval(address + "(data.args[0])");
+      else if(data.args.length == 2) eval(address + "(data.args[0],data.args[1])");
+      else if(data.args.length == 3) eval(address + "(data.args[0],data.args[1],data.args[2])");
+      else console.log("warning: apert is unfinished software, so sorry, try again later");
       // should probably check to make sure the function exists first!...
     } else {
       console.log("received WebSocket message of unknown type");
