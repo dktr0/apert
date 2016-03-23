@@ -65,6 +65,9 @@ wss.on('connection',function(ws) {
   var location = url.parse(ws.upgradeReq.url, true);
   console.log("new WebSocket connection: " + location);
 });
+ws.on('message',function(data, flags) {
+  // starting to add websocket for browser-to-server communication
+});
 
 // make it go
 server.listen(tcpPort, function () { console.log('Listening on ' + server.address().port) });
