@@ -12,6 +12,7 @@ var osc = require('osc');
 // parse command-line options
 var knownOpts = {
     "password" : [String, null],
+    "javascript" : [String, null],
     "tcp-port" : [Number, null],
     "osc-port" : [Number, null],
     "help": Boolean
@@ -20,7 +21,8 @@ var knownOpts = {
 var shortHands = {
     "p" : ["--password"],
     "t" : ["--tcp-port"],
-    "o" : ["--osc-port"]
+    "o" : ["--osc-port"],
+    "j" : ["--javascript"]
 };
 
 var parsed = nopt(knownOpts,shortHands,process.argv,2);
@@ -45,13 +47,14 @@ var oscPort = parsed['osc-port'];
 if(oscPort==null) oscPort = 8080;
 var tcpPort = parsed['tcp-port'];
 if(tcpPort==null) tcpPort = 8080;
+var javascript = parsed['javascript'];
 
 // create HTTP (Express) server
 var server = http.createServer();
 var app = express();
 app.use(express.static(__dirname));
 app.get('/?', function(req, res, next) {
-  res.writeHead(302, {location: '/index.html'});
+  res.send('<html><head><script src="base.js"></script><script src="specific.js"></script></head><body onload="baseOnLoad()"></body></html>');
   res.end();
 });
 server.on('request',app);
