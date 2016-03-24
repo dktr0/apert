@@ -62,6 +62,9 @@ function testOff() {
   }
 }
 
+
+// my functions will go here
+
 function simple(freq,amp) {
 	var sine = ac.createOscillator();
 	sine.type = 'sine';
