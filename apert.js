@@ -64,9 +64,16 @@ wss.broadcast = function(data) {
 wss.on('connection',function(ws) {
   var location = url.parse(ws.upgradeReq.url, true);
   console.log("new WebSocket connection: " + location);
-});
-ws.on('message',function(data, flags) {
-  // starting to add websocket for browser-to-server communication
+  ws.on('message',function(m) {
+      var n = JSON.parse(m);
+      if(n.password != password) {
+        console.log("invalid password ")
+      } else {
+        if(n.request == "oscToAll") {
+          oscToAll(n.address,n.args);
+        }
+      }
+  });
 });
 
 // make it go
@@ -76,7 +83,11 @@ server.listen(tcpPort, function () { console.log('Listening on ' + server.addres
 var udp = new osc.UDPPort( { localAddress: "0.0.0.0", localPort: oscPort });
 if(udp!=null)udp.open();
 udp.on('message', function(m) {
-  var n = { 'type': 'osc', 'address': m.address, 'args': m.args };
+  oscToAll(m.address,m.args);
+});
+
+function oscToAll(address,args) {
+  var n = { 'type': 'osc', 'address': address, 'args': args };
   try { wss.broadcast(JSON.stringify(n)); }
   catch(e) { stderr.write("warning: exception in WebSocket send\n"); }
-});
+}
