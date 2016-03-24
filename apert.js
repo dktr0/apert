@@ -8,6 +8,7 @@ var WebSocket = require('ws');
 var express = require('express');
 var nopt = require('nopt');
 var osc = require('osc');
+var fs = require('fs');
 
 // parse command-line options
 var knownOpts = {
@@ -33,6 +34,7 @@ if(parsed['help']!=null) {
     stderr.write(" --password [word] (-p)    password to authenticate OSC messages to server (required)\n");
     stderr.write(" --osc-port (-o) [number]  UDP port on which to receive OSC messages (default: 8080)\n");
     stderr.write(" --tcp-port (-t) [number]  TCP port for plain HTTP and WebSocket connections (default: 8080)\n");
+    stderr.write(" --javascript (-j) [path]  path to piece-specific javascript file to serve as specific.js\n");
     process.exit(1);
 }
 
@@ -47,12 +49,30 @@ var oscPort = parsed['osc-port'];
 if(oscPort==null) oscPort = 8080;
 var tcpPort = parsed['tcp-port'];
 if(tcpPort==null) tcpPort = 8080;
+
 var javascript = parsed['javascript'];
+var specific;
+if(javascript!=null) {
+  fs.readFile(javascript,'utf8', function (err,data) {
+    if (err) {
+      console.log(err);
+      return;
+    }
+    specific = data;
+    console.log("specific javascript loaded from " + javascript);
+  });
+}
 
 // create HTTP (Express) server
 var server = http.createServer();
 var app = express();
 app.use(express.static(__dirname));
+app.get('/specific.js',function(req,res,next) {
+  if(specific!=null) {
+    res.send(specific);
+  }
+  res.end();
+});
 app.get('/?', function(req, res, next) {
   res.send('<html><head><script src="base.js"></script><script src="specific.js"></script></head><body onload="baseOnLoad()"></body></html>');
   res.end();

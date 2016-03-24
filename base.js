@@ -15,10 +15,10 @@ function setupWebSocket() {
   console.log("attempting websocket connection to " + url);
   ws = new WebSocket(url);
   ws.onopen = function () {
-    console.log("extramuros websocket connection opened");
+    console.log("websocket connection opened");
   };
   ws.onerror = function () {
-    console.log("ERROR opening extramuros websocket connection");
+    console.log("ERROR opening websocket connection");
   };
   ws.onmessage = function (m) {
     var data = JSON.parse(m.data);
