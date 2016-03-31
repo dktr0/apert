@@ -19,6 +19,13 @@ where the name field provides the name of a JavaScript function to be called in 
 web browsers connected to the apert server. The password needs to match or the message
 will be ignored.
 
+## Point apert towards a separate folder from which files can be served
+
+OSC: /folder [password] [path]
+JSON: { request: "folder", password: "???", path: "???" }
+where path is a path to a folder from which additional files can be served to client
+web browsers. The password needs to match or the message will be ignored.
+
 ## Load a specific JavaScript file that can be provided to all web browsers
 
 OSC: /load [password] [path]
