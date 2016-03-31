@@ -1,0 +1,85 @@
+<html>
+<head>
+
+<script>
+var ws;
+
+function setupWebSocket() {
+  window.WebSocket = window.WebSocket || window.MozWebSocket;
+  var url = 'ws://' + location.hostname + ':8080';
+  console.log("attempting websocket connection to " + url);
+  ws = new WebSocket(url);
+  ws.onopen = function () { console.log("websocket connection opened"); };
+  ws.onerror = function () { console.log("ERROR opening websocket connection"); };
+  ws.onmessage = function (m) {
+    var data = JSON.parse(m.data);
+    if(data.request =='call') { console.log("call " + data.name); }
+    if(data.request =='version') { console.log("version " + data.number); }
+    else {
+      console.log("received WebSocket message of unknown type");
+    }
+  }
+}
+
+function getPassword() {
+  var x = document.getElementById('password').value;
+  if(x == null || x == "") {
+    alert("You must enter a password to issue instructions to an apert server");
+    return null;
+  }
+  return x;
+}
+
+function all(msg) {
+  var password = getPassword();
+  if(password == null) return;
+  var name = document.getElementById('allName').value;
+  if(name == null) return;
+  var arg1 = document.getElementById('allArg1').value;
+  var arg2 = document.getElementById('allArg2').value;
+  var arg3 = document.getElementById('allArg3').value;
+  var arg4 = document.getElementById('allArg4').value;
+  var args = [];
+  if(arg1 != null && arg2 == null && arg3 == null && arg4 == null) { args = [arg1]; }
+  else if(arg1 != null && arg2 != null && arg3 == null && arg4 == null) { args = [arg1,arg2]; }
+  else if(arg1 != null && arg2 != null && arg3 != null && arg4 == null) { args = [arg1,arg2,arg3]; }
+  else if(arg1 != null && arg2 != null && arg3 != null && arg4 != null) { args = [arg1,arg2,arg3,arg4]; }
+  var m = { password: password, request: 'load', name: name, args: args };
+  var n = JSON.stringify(m);
+  ws.send(msg);
+}
+
+function load(path) {
+  var password = getPassword();
+  if(password == null) return;
+  var path = document.getElementById('path').value;
+  if(path == null) return;
+  var m = { password: password, request: 'load', path: path };
+  var n = JSON.stringify(m);
+  ws.send(n);
+}
+
+function refresh() {
+  var password = getPassword();
+  if(password == null) return;
+  var m = { password: password, request: 'refresh' };
+  var n = JSON.stringify(m);
+  ws.send(n);
+}
+
+</script>
+
+</head>
+<body>
+<div>apert</div>
+<div>Password: <input type="password" name="password" length="32" id="password"/></div>
+<div>all: <button name="all" onclick="all()"/><input type="text" length="16" id="allName"/>
+  <input type="text" length="8" id="allArg1"/>
+  <input type="text" length="8" id="allArg2"/>
+  <input type="text" length="8" id="allArg3"/>
+  <input type="text" length="8" id="allArg4"/>
+</div>
+<div>load: <button name="load" onclick="load()"/><input type="text" length="32" id="load"/></div>
+<div><button name="refresh" onclick="refresh()"/></div>
+</body>
+</html>

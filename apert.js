@@ -10,6 +10,8 @@ var nopt = require('nopt');
 var osc = require('osc');
 var fs = require('fs');
 
+var apertRefreshCount = 0;
+
 // parse command-line options
 var knownOpts = {
     "password" : [String, null],
@@ -23,7 +25,7 @@ var shortHands = {
     "p" : ["--password"],
     "t" : ["--tcp-port"],
     "o" : ["--osc-port"],
-    "j" : ["--javascript"]
+    "l" : ["--load"]
 };
 
 var parsed = nopt(knownOpts,shortHands,process.argv,2);
@@ -34,7 +36,7 @@ if(parsed['help']!=null) {
     stderr.write(" --password [word] (-p)    password to authenticate OSC messages to server (required)\n");
     stderr.write(" --osc-port (-o) [number]  UDP port on which to receive OSC messages (default: 8080)\n");
     stderr.write(" --tcp-port (-t) [number]  TCP port for plain HTTP and WebSocket connections (default: 8080)\n");
-    stderr.write(" --javascript (-j) [path]  path to piece-specific javascript file to serve as specific.js\n");
+    stderr.write(" --load (-l) [path]        path to piece-specific javascript file to load as specific.js\n");
     process.exit(1);
 }
 
@@ -67,7 +69,7 @@ if(javascript!=null) {
 var server = http.createServer();
 var app = express();
 app.use(express.static(__dirname));
-app.get('/specific.js',function(req,res,next) {
+app.get('/_apert_/specific.js',function(req,res,next) {
   if(specific!=null) {
     res.send(specific);
   }
@@ -78,6 +80,8 @@ app.get('/?', function(req, res, next) {
   res.end();
 });
 server.on('request',app);
+
+var store = [];
 
 // create WebSocket server
 var wss = new WebSocket.Server({server: server});
@@ -90,10 +94,20 @@ wss.on('connection',function(ws) {
   ws.on('message',function(m) {
       var n = JSON.parse(m);
       if(n.password != password) {
-        console.log("invalid password ")
-      } else {
-        if(n.request == "oscToAll") {
-          oscToAll(n.address,n.args);
+        console.log("invalid password")
+      }
+      else if(n.request == null) {
+        console.log("request field is missing")
+      }
+      else {
+        if(n.request == "all") {
+          all(n.name,n.args);
+        }
+        if(n.request == "load") {
+          load(n.path);
+        }
+        if(n.request == "refresh") {
+          refresh();
         }
       }
   });
@@ -102,15 +116,55 @@ wss.on('connection',function(ws) {
 // make it go
 server.listen(tcpPort, function () { console.log('Listening on ' + server.address().port) });
 
+// send refresh count every 3 seconds
+function sendRefreshCount() {
+  var json = {type:'refreshCount',count:apertRefreshCount};
+  var s = JSON.stringify(json);
+  wss.broadcast(s);
+}
+setInterval(function() {
+  sendRefreshCount();
+},3000);
+
 // create OSC server (listens on UDP port, resends OSC messages to browsers)
 var udp = new osc.UDPPort( { localAddress: "0.0.0.0", localPort: oscPort });
 if(udp!=null)udp.open();
 udp.on('message', function(m) {
-  oscToAll(m.address,m.args);
+  if(m.address == "/all") {
+    var name = m.args[0];
+    var args = m.args.splice(0,1);
+    all(name,args);
+    console.log("/all");
+  }
+  if(m.address == "/load") {
+    load(m.args[0]);
+    console.log("/load " + m.args[0]);
+  }
+  if(m.address == "/refresh") {
+    refresh();
+    console.log("/refresh");
+  }
 });
 
-function oscToAll(address,args) {
-  var n = { 'type': 'osc', 'address': address, 'args': args };
+// execute the function 'name' with arguments 'args' on all connected devices
+function all(name,args) {
+  var n = { 'type': 'all', 'name': name, 'args': args };
   try { wss.broadcast(JSON.stringify(n)); }
   catch(e) { stderr.write("warning: exception in WebSocket send\n"); }
+}
+
+function load(path) {
+  fs.readFile(path,'utf8', function (err,data) {
+    if (err) {
+      console.log("unable to load specific javascript at " + path + ": " + err);
+      return;
+    }
+    specific = data;
+    console.log("specific javascript loaded from " + javascript);
+  });
+}
+
+function refresh() {
+  apertRefreshCount = apertRefreshCount + 1;
+  sendRefreshCount();
 }

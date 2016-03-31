@@ -1,15 +1,8 @@
 var ac; // audio context
+var apertRefreshCount;
 
 function baseOnLoad() {
-  setupAudioContext();
-  setupWebSocket();
-}
-
-function setupAudioContext() {
   ac = new (window.AudioContext||window.webkitAudioContext)();
-}
-
-function setupWebSocket() {
   window.WebSocket = window.WebSocket || window.MozWebSocket;
   var url = 'ws://' + location.hostname + ':8080';
   console.log("attempting websocket connection to " + url);
@@ -22,16 +15,26 @@ function setupWebSocket() {
   };
   ws.onmessage = function (m) {
     var data = JSON.parse(m.data);
-    if(data.type == 'osc') {
-      console.log("received " + data.address);
-      var address = data.address.substring(1);
-      if(data.args.length == 0) eval(address + "()");
-      else if(data.args.length == 1) eval(address + "(data.args[0])");
-      else if(data.args.length == 2) eval(address + "(data.args[0],data.args[1])");
-      else if(data.args.length == 3) eval(address + "(data.args[0],data.args[1],data.args[2])");
+    if(data.type == 'refreshCount') {
+      console.log("refreshCount = " + data.count);
+      if(apertRefreshCount != null) {
+        if(data.count > apertRefreshCount) {
+          window.location.reload(true); // page version has increased so force reload from server
+        }
+      }
+      else apertRefreshCount = data.count;
+    }
+    else if(data.type == 'all') {
+      console.log("/all " + data.name + "...");
+      var name = data.name;
+      if(data.args.length == 0) eval(name + "()");
+      else if(data.args.length == 1) eval(name + "(data.args[0])");
+      else if(data.args.length == 2) eval(name + "(data.args[0],data.args[1])");
+      else if(data.args.length == 3) eval(name + "(data.args[0],data.args[1],data.args[2])");
       else console.log("warning: apert is unfinished software, so sorry, try again later");
       // should probably check to make sure the function exists first!...
-    } else {
+    }
+    else {
       console.log("received WebSocket message of unknown type");
     }
   }
@@ -73,7 +76,7 @@ function simple(freq,amp) {
 	// envelope
 	var now = ac.currentTime;
 	gain.gain.setValueAtTime(0,now);
-gain.gain.linearRampToValueAtTime(amp,now+0.005); gain.gain.linearRampToValueAtTime(0,now+0.405);
+  gain.gain.linearRampToValueAtTime(amp,now+0.005); gain.gain.linearRampToValueAtTime(0,now+0.405);
 	// schedule cleanup
 	setTimeout(function() {
 		sine.stop();
