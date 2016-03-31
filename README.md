@@ -40,7 +40,7 @@ will be ignored.
 
 ## Refresh the web page displayed by all web browsers
 
-OSC: /refresh
+OSC: /refresh [password]
 JSON: { request: "refresh", password: "???" }
 all web browsers connected to the apert server will, shortly, reload the current
 web document. This might be used after /load (above), for example, in order to force all

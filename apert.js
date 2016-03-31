@@ -125,6 +125,15 @@ if(oscPort != null) {
   var udp = new osc.UDPPort( { localAddress: "0.0.0.0", localPort: oscPort });
   if(udp!=null)udp.open();
   udp.on('message', function(m) {
+    if(m.args.length == 0) {
+      console.log("error: received OSC with no arguments (all messages require password at least...)");
+      return;
+    }
+    if(m.args[0] != password) {
+      console.log("error: received OSC with incorrect password");
+      return;
+    }
+    m.args.splice(0,1); // remove password argument once it has matched
     if(m.address == "/all") {
       var name = m.args[0];
       m.args.splice(0,1);
