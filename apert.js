@@ -15,7 +15,8 @@ var apertRefreshCount = 0;
 // parse command-line options
 var knownOpts = {
     "password" : [String, null],
-    "javascript" : [String, null],
+    "load" : [String, null],
+    "folder" : [String, null],
     "tcp-port" : [Number, null],
     "osc-port" : [Number, null],
     "help": Boolean
@@ -25,6 +26,7 @@ var shortHands = {
     "p" : ["--password"],
     "t" : ["--tcp-port"],
     "o" : ["--osc-port"],
+    "f" : ["--folder"],
     "l" : ["--load"]
 };
 
@@ -36,7 +38,8 @@ if(parsed['help']!=null) {
     stderr.write(" --password [word] (-p)    password to authenticate OSC messages to server (required)\n");
     stderr.write(" --tcp-port (-t) [number]  TCP port for plain HTTP and WebSocket connections (default: 8000)\n");
     stderr.write(" --osc-port (-o) [number]  UDP port on which to receive OSC messages (default: none)\n");
-    stderr.write(" --load (-l) [path]        path to piece-specific javascript file to load as specific.js\n");
+    stderr.write(" --folder (-f) [path]      path to folder from which to serve additional files\n");
+    stderr.write(" --load (-l) [path]        path (appended to folder path) to specific JavaScript added to page\n");
     process.exit(1);
 }
 
@@ -50,6 +53,8 @@ var tcpPort = parsed['tcp-port'];
 if(tcpPort==null) tcpPort = 8000;
 var oscPort = parsed['osc-port'];
 
+var folder = parsed['folder'];
+if(folder == null) folder = __dirname;
 var javascript = parsed['load'];
 var specific;
 if(javascript!=null) load(javascript);
@@ -57,12 +62,16 @@ if(javascript!=null) load(javascript);
 // create HTTP (Express) server
 var server = http.createServer();
 var app = express();
-app.use(express.static(__dirname));
 loadBase();
-app.get('/?', function(req, res, next) {
+app.get('/', function(req, res, next) {
   if(html != null) res.send(html);
   res.end();
 });
+app.get('/control', function(req,res,next) {
+  if(controlHtml != null) res.send(controlHtml);
+  res.end();
+});
+app.use(express.static(folder));
 server.on('request',app);
 
 // create WebSocket server
@@ -139,6 +148,13 @@ function loadBase() {
     base = data;
     updateHtml();
   });
+  fs.readFile('control.html','utf8', function (err,data) {
+    if (err) {
+      console.log("*** PROBLEM: unable to load control.html: " + err);
+      return;
+    }
+    controlHtml = data;
+  });
 }
 
 function updateHtml() {
@@ -158,14 +174,15 @@ function all(name,args) {
 }
 
 function load(path) {
-  fs.readFile(path,'utf8', function (err,data) {
+  var fullPath = folder + "/" + path;
+  fs.readFile(fullPath,'utf8', function (err,data) {
     if (err) {
-      console.log("unable to load specific javascript at " + path + ": " + err);
+      console.log("unable to load specific javascript at " + fullPath + ": " + err);
       return;
     }
     specific = data;
     updateHtml();
-    console.log("specific javascript loaded from " + path);
+    console.log("specific javascript loaded from " + fullPath);
   });
 }
 
