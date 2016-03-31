@@ -34,8 +34,8 @@ if(parsed['help']!=null) {
     stderr.write("usage:\n");
     stderr.write(" --help (-h)               this help message\n");
     stderr.write(" --password [word] (-p)    password to authenticate OSC messages to server (required)\n");
-    stderr.write(" --osc-port (-o) [number]  UDP port on which to receive OSC messages (default: 8080)\n");
-    stderr.write(" --tcp-port (-t) [number]  TCP port for plain HTTP and WebSocket connections (default: 8080)\n");
+    stderr.write(" --tcp-port (-t) [number]  TCP port for plain HTTP and WebSocket connections (default: 8000)\n");
+    stderr.write(" --osc-port (-o) [number]  UDP port on which to receive OSC messages (default: none)\n");
     stderr.write(" --load (-l) [path]        path to piece-specific javascript file to load as specific.js\n");
     process.exit(1);
 }
@@ -46,13 +46,11 @@ if(password == null) {
     stderr.write("use --help to display available options\n");
     process.exit(1);
 }
-
-var oscPort = parsed['osc-port'];
-if(oscPort==null) oscPort = 8080;
 var tcpPort = parsed['tcp-port'];
-if(tcpPort==null) tcpPort = 8080;
+if(tcpPort==null) tcpPort = 8000;
+var oscPort = parsed['osc-port'];
 
-var javascript = parsed['javascript'];
+var javascript = parsed['load'];
 var specific;
 if(javascript!=null) {
   fs.readFile(javascript,'utf8', function (err,data) {
@@ -127,24 +125,26 @@ setInterval(function() {
 },3000);
 
 // create OSC server (listens on UDP port, resends OSC messages to browsers)
-var udp = new osc.UDPPort( { localAddress: "0.0.0.0", localPort: oscPort });
-if(udp!=null)udp.open();
-udp.on('message', function(m) {
-  if(m.address == "/all") {
-    var name = m.args[0];
-    var args = m.args.splice(0,1);
-    all(name,args);
-    console.log("/all");
-  }
-  if(m.address == "/load") {
-    load(m.args[0]);
-    console.log("/load " + m.args[0]);
-  }
-  if(m.address == "/refresh") {
-    refresh();
-    console.log("/refresh");
-  }
-});
+if(oscPort != null) {
+  var udp = new osc.UDPPort( { localAddress: "0.0.0.0", localPort: oscPort });
+  if(udp!=null)udp.open();
+  udp.on('message', function(m) {
+    if(m.address == "/all") {
+      var name = m.args[0];
+      var args = m.args.splice(0,1);
+      all(name,args);
+      console.log("/all");
+    }
+    if(m.address == "/load") {
+      load(m.args[0]);
+      console.log("/load " + m.args[0]);
+    }
+    if(m.address == "/refresh") {
+      refresh();
+      console.log("/refresh");
+    }
+  });
+}
 
 // execute the function 'name' with arguments 'args' on all connected devices
 function all(name,args) {
