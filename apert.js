@@ -57,7 +57,7 @@ var folder = parsed['folder'];
 if(folder == null) folder = __dirname;
 var javascript = parsed['load'];
 var specific;
-if(javascript!=null) load(javascript);
+loadJavascript();
 
 // create HTTP (Express) server
 var server = http.createServer();
@@ -100,6 +100,9 @@ wss.on('connection',function(ws) {
         if(n.request == "refresh") {
           refresh();
         }
+        if(n.request == "folder") {
+          folder(n.path);
+        }
       }
   });
 });
@@ -124,9 +127,9 @@ if(oscPort != null) {
   udp.on('message', function(m) {
     if(m.address == "/all") {
       var name = m.args[0];
-      var args = m.args.splice(0,1);
-      all(name,args);
-      console.log("/all");
+      m.args.splice(0,1);
+      all(name,m.args);
+      console.log("/all " + name + " " + m.args);
     }
     if(m.address == "/load") {
       load(m.args[0]);
@@ -135,6 +138,10 @@ if(oscPort != null) {
     if(m.address == "/refresh") {
       refresh();
       console.log("/refresh");
+    }
+    if(m.address == "/folder") {
+      setFolder(m.args[0]);
+      console.log("/folder " + m.args[0]);
     }
   });
 }
@@ -161,7 +168,7 @@ function updateHtml() {
   var work = '<html><head><script>';
   if(base != null) work = work + base;
   work = work+ '</script><script>';
-  if(specific!=null) work = work + specific;
+  if(specific != null) work = work + specific;
   work = work + '</script></head><body onload="baseOnLoad()"></body></html>';
   html = work;
 }
@@ -174,7 +181,18 @@ function all(name,args) {
 }
 
 function load(path) {
-  var fullPath = folder + "/" + path;
+  javascript = path;
+  loadJavascript();
+}
+
+function setFolder(path) {
+  folder = path;
+  loadJavascript();
+}
+
+function loadJavascript() {
+  if(javascript == null) return;
+  var fullPath = folder + "/" + javascript;
   fs.readFile(fullPath,'utf8', function (err,data) {
     if (err) {
       console.log("unable to load specific javascript at " + fullPath + ": " + err);
