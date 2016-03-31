@@ -4,7 +4,8 @@ var apertRefreshCount;
 function baseOnLoad() {
   ac = new (window.AudioContext||window.webkitAudioContext)();
   window.WebSocket = window.WebSocket || window.MozWebSocket;
-  var url = 'ws://' + location.hostname + ':8080';
+  // *** port should not be hardwired in the line below!!!
+  var url = 'ws://' + location.hostname + ':8000';
   console.log("attempting websocket connection to " + url);
   ws = new WebSocket(url);
   ws.onopen = function () {
@@ -16,7 +17,9 @@ function baseOnLoad() {
   ws.onmessage = function (m) {
     var data = JSON.parse(m.data);
     if(data.type == 'refreshCount') {
-      console.log("refreshCount = " + data.count);
+      // not logging refreshCount to avoid excessively busy logging
+      // but you can check it by evaluating "apertRefreshCount" at a web console
+      // console.log("refreshCount = " + data.count);
       if(apertRefreshCount != null) {
         if(data.count > apertRefreshCount) {
           window.location.reload(true); // page version has increased so force reload from server
@@ -25,14 +28,15 @@ function baseOnLoad() {
       else apertRefreshCount = data.count;
     }
     else if(data.type == 'all') {
-      console.log("/all " + data.name + "...");
+      console.log("/all " + data.name + " " + data.args);
       var name = data.name;
       if(data.args.length == 0) eval(name + "()");
       else if(data.args.length == 1) eval(name + "(data.args[0])");
       else if(data.args.length == 2) eval(name + "(data.args[0],data.args[1])");
       else if(data.args.length == 3) eval(name + "(data.args[0],data.args[1],data.args[2])");
-      else console.log("warning: apert is unfinished software, so sorry, try again later");
-      // should probably check to make sure the function exists first!...
+      else if(data.args.length == 4) eval(name + "(data.args[0],data.args[1],data.args[2],data.args[3])");
+      else console.log("warning: too many arguments in all message, apert is unfinished software, so sorry, try again later");
+      // should probably check to make sure the function exists first, also!...
     }
     else {
       console.log("received WebSocket message of unknown type");

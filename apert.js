@@ -52,34 +52,18 @@ var oscPort = parsed['osc-port'];
 
 var javascript = parsed['load'];
 var specific;
-if(javascript!=null) {
-  fs.readFile(javascript,'utf8', function (err,data) {
-    if (err) {
-      console.log(err);
-      return;
-    }
-    specific = data;
-    console.log("specific javascript loaded from " + javascript);
-  });
-}
+if(javascript!=null) load(javascript);
 
 // create HTTP (Express) server
 var server = http.createServer();
 var app = express();
 app.use(express.static(__dirname));
-app.get('/_apert_/specific.js',function(req,res,next) {
-  if(specific!=null) {
-    res.send(specific);
-  }
-  res.end();
-});
+loadBase();
 app.get('/?', function(req, res, next) {
-  res.send('<html><head><script src="base.js"></script><script src="specific.js"></script></head><body onload="baseOnLoad()"></body></html>');
+  if(html != null) res.send(html);
   res.end();
 });
 server.on('request',app);
-
-var store = [];
 
 // create WebSocket server
 var wss = new WebSocket.Server({server: server});
@@ -146,6 +130,26 @@ if(oscPort != null) {
   });
 }
 
+function loadBase() {
+  fs.readFile('base.js','utf8', function (err,data) {
+    if (err) {
+      console.log("*** PROBLEM: unable to load base.js: " + err);
+      return;
+    }
+    base = data;
+    updateHtml();
+  });
+}
+
+function updateHtml() {
+  var work = '<html><head><script>';
+  if(base != null) work = work + base;
+  work = work+ '</script><script>';
+  if(specific!=null) work = work + specific;
+  work = work + '</script></head><body onload="baseOnLoad()"></body></html>';
+  html = work;
+}
+
 // execute the function 'name' with arguments 'args' on all connected devices
 function all(name,args) {
   var n = { 'type': 'all', 'name': name, 'args': args };
@@ -160,7 +164,8 @@ function load(path) {
       return;
     }
     specific = data;
-    console.log("specific javascript loaded from " + javascript);
+    updateHtml();
+    console.log("specific javascript loaded from " + path);
   });
 }
 

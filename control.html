@@ -4,19 +4,20 @@
 <script>
 var ws;
 
-function setupWebSocket() {
+function setup() {
   window.WebSocket = window.WebSocket || window.MozWebSocket;
-  var url = 'ws://' + location.hostname + ':8080';
+  // *** NOTE: port should not be hardwired in the line below!!!
+  var url = 'ws://' + location.hostname + ':8000';
   console.log("attempting websocket connection to " + url);
   ws = new WebSocket(url);
   ws.onopen = function () { console.log("websocket connection opened"); };
   ws.onerror = function () { console.log("ERROR opening websocket connection"); };
   ws.onmessage = function (m) {
     var data = JSON.parse(m.data);
-    if(data.request =='call') { console.log("call " + data.name); }
-    if(data.request =='version') { console.log("version " + data.number); }
+    if(data.type =='all') { console.log("all " + data.name); }
+    else if(data.type =='refreshCount') { console.log("version " + data.count); }
     else {
-      console.log("received WebSocket message of unknown type");
+      console.log("received WebSocket message of unknown type = " + data.type);
     }
   }
 }
@@ -30,7 +31,8 @@ function getPassword() {
   return x;
 }
 
-function all(msg) {
+// note: I think all is reserved in a browser context, so function below is called sendAll
+function sendAll() {
   var password = getPassword();
   if(password == null) return;
   var name = document.getElementById('allName').value;
@@ -40,20 +42,25 @@ function all(msg) {
   var arg3 = document.getElementById('allArg3').value;
   var arg4 = document.getElementById('allArg4').value;
   var args = [];
+  if(arg1 == "") arg1 = null;
+  if(arg2 == "") arg2 = null;
+  if(arg3 == "") arg3 = null;
+  if(arg4 == "") arg4 = null;
   if(arg1 != null && arg2 == null && arg3 == null && arg4 == null) { args = [arg1]; }
   else if(arg1 != null && arg2 != null && arg3 == null && arg4 == null) { args = [arg1,arg2]; }
   else if(arg1 != null && arg2 != null && arg3 != null && arg4 == null) { args = [arg1,arg2,arg3]; }
   else if(arg1 != null && arg2 != null && arg3 != null && arg4 != null) { args = [arg1,arg2,arg3,arg4]; }
-  var m = { password: password, request: 'load', name: name, args: args };
+  var m = { password: password, request: 'all', name: name, args: args };
   var n = JSON.stringify(m);
-  ws.send(msg);
+  ws.send(n);
 }
 
 function load(path) {
   var password = getPassword();
   if(password == null) return;
-  var path = document.getElementById('path').value;
+  var path = document.getElementById('load').value;
   if(path == null) return;
+  if(path == "") return;
   var m = { password: password, request: 'load', path: path };
   var n = JSON.stringify(m);
   ws.send(n);
@@ -67,19 +74,53 @@ function refresh() {
   ws.send(n);
 }
 
+function testOn() {
+  var password = getPassword();
+  if(password == null) return;
+  var m = { password: password, request: 'all', name: 'testOn', args:[] };
+  var n = JSON.stringify(m);
+  ws.send(n);
+}
+
+function testOff() {
+  var password = getPassword();
+  if(password == null) return;
+  var m = { password: password, request: 'all', name: 'testOff', args:[] };
+  var n = JSON.stringify(m);
+  ws.send(n);
+}
+
 </script>
 
 </head>
-<body>
+<body onload="setup()">
+
 <div>apert</div>
-<div>Password: <input type="password" name="password" length="32" id="password"/></div>
-<div>all: <button name="all" onclick="all()"/><input type="text" length="16" id="allName"/>
+
+<div>Password: <input type="password" name="password" length="32" id="password"/></div><br/>
+
+<div>
+  <button onclick="testOn()">testOn</button>
+  <button onclick="testOff()">testOff</button>
+</div><br/>
+
+<div>
+  <button onclick="sendAll()">all</button>
+  <input type="text" length="16" id="allName"/>
   <input type="text" length="8" id="allArg1"/>
   <input type="text" length="8" id="allArg2"/>
   <input type="text" length="8" id="allArg3"/>
   <input type="text" length="8" id="allArg4"/>
-</div>
-<div>load: <button name="load" onclick="load()"/><input type="text" length="32" id="load"/></div>
-<div><button name="refresh" onclick="refresh()"/></div>
+</div><br/>
+
+<div>
+  <button onclick="load()">load</button>
+  <input type="text" length="32" id="load"/>
+</div><br/>
+
+<div>
+  <button onclick="refresh()">refresh</button>
+</div><br/>
+
 </body>
 </html>
