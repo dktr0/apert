@@ -50,3 +50,19 @@ SimpleMonoSample.prototype.play = function (dur,rate,startPos) {
     },(dur*1000)+250); // ...a quarter second after envelope finishes
   } else console.log("warning: attempt to play synth that was already playing");
 }
+
+simpleMonoSampleBank = new Array;
+for(var n=0;n<10;n++) {
+  simpleMonoSampleBank[n] = new SimpleMonoSample("uhoh-mono-16bit.wav");
+}
+
+function playSimpleMonoSample(dur,rate,startPos) {
+  var n;
+  for(n=0;n<10;n++) {
+    if(simpleMonoSampleBank[n].playing==false)break;
+  }
+  if(n<10) {
+    simpleMonoSampleBank[n].play(dur,rate,startPos);
+  }
+  else console.log("warning: all synth instances already plaing");
+}
