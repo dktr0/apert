@@ -15,7 +15,12 @@ function setup() {
   ws.onmessage = function (m) {
     var data = JSON.parse(m.data);
     if(data.type =='all') { console.log("all " + data.name); }
-    else if(data.type =='refreshCount') { console.log("version " + data.count); }
+    else if(data.type =='refreshCount') {
+      document.getElementById('refreshCount').textContent = data.count;
+    }
+    else if(data.type =='clientCount') {
+      document.getElementById('clientCount').textContent = data.count;
+    }
     else {
       console.log("received WebSocket message of unknown type = " + data.type);
     }
@@ -95,8 +100,9 @@ function testOff() {
 </head>
 <body onload="setup()">
 
-<div>apert</div>
-
+<div>apert control page</div>
+<div>connected clients: <span id="clientCount">0</span></div>
+<div>refresh count: <span id="refreshCount">0</span></div>
 <div>Password: <input type="password" name="password" length="32" id="password"/></div><br/>
 
 <div>

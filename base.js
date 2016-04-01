@@ -27,6 +27,9 @@ function baseOnLoad() {
       }
       else apertRefreshCount = data.count;
     }
+    else if(data.type == 'clientCount') {
+      console.log("client count is " + data.count);
+    }
     else if(data.type == 'all') {
       console.log("/all " + data.name + " " + data.args);
       var name = data.name;
