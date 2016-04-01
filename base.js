@@ -45,6 +45,7 @@ function baseOnLoad() {
       console.log("received WebSocket message of unknown type");
     }
   }
+  apertInitialize(); // call initializer function provided by specific loaded JavaScript
 }
 
 function testOn() {

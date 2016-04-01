@@ -51,10 +51,12 @@ SimpleMonoSample.prototype.play = function (dur,rate,startPos) {
   } else console.log("warning: attempt to play synth that was already playing");
 }
 
-var simpleMonoSampleBank = new Array(10);
-for(var n=0;n<10;n++) {
-  console.log("created synth " + n)
-  simpleMonoSampleBank[n] = new SimpleMonoSample("uhoh-mono-16bit.wav");
+function apertInitialize() {
+  simpleMonoSampleBank = new Array(10);
+  for(var n=0;n<10;n++) {
+    console.log("created synth " + n)
+    simpleMonoSampleBank[n] = new SimpleMonoSample("uhoh-mono-16bit.wav");
+  }
 }
 
 function playSimpleMonoSample(dur,rate,startPos) {
