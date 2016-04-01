@@ -207,12 +207,18 @@ function loadBase() {
 }
 
 function updateHtml() {
-  var work = '<html><head><script>';
-  if(base != null) work = work + base;
-  work = work+ '</script><script>';
-  if(specific != null) work = work + specific;
-  work = work + '</script>';
+  var work = '<html><head>'
   if(jquery != null) work = work + '<script src="jquery"></script>';
+  if(base != null) {
+    work = work + '<script>';
+    work = work + base;
+    work = work+ '</script>';
+  }
+  if(specific != null) {
+    work = work + '<script>';
+    work = work + specific;
+    work = work + '</script>';
+  }
   work = work + '</head><body onload="baseOnLoad()"></body></html>';
   html = work;
 }
