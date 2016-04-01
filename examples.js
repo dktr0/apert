@@ -74,7 +74,7 @@ function playSimpleMonoSample(amp,dur,rate,startPos) {
 
 function simpleSaw(freq,amp) {
 	var sine = ac.createOscillator();
-	sine.type = 'saw';
+	sine.type = 'sawtooth';
 	sine.frequency.value = freq;
 	var gain = ac.createGain();
 	sine.connect(gain);
@@ -95,7 +95,7 @@ function simpleSaw(freq,amp) {
 function generativeSaw(freqs,amp) {
   var freq = freqs[Math.floor(Math.random()*freqs.length)];
 	var sine = ac.createOscillator();
-	sine.type = 'saw';
+	sine.type = 'sawtooth';
 	sine.frequency.value = freq;
 	var gain = ac.createGain();
 	sine.connect(gain);
