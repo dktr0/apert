@@ -71,3 +71,44 @@ function playSimpleMonoSample(amp,dur,rate,startPos) {
   }
   else console.log("warning: all synth instances already plaing");
 }
+
+function simpleSaw(freq,amp) {
+	var sine = ac.createOscillator();
+	sine.type = 'saw';
+	sine.frequency.value = freq;
+	var gain = ac.createGain();
+	sine.connect(gain);
+	gain.connect(ac.destination);
+	sine.start();
+	// envelope
+	var now = ac.currentTime;
+	gain.gain.setValueAtTime(0,now);
+  gain.gain.linearRampToValueAtTime(amp,now+0.005); gain.gain.linearRampToValueAtTime(0,now+0.405);
+	// schedule cleanup
+	setTimeout(function() {
+		sine.stop();
+		sine.disconnect(gain);
+		gain.disconnect(ac.destination);
+	},1000);
+};
+
+function generativeSaw(freqs,amp) {
+  var freq = freqs[Math.floor(Math.random()*freqs.length)];
+	var sine = ac.createOscillator();
+	sine.type = 'saw';
+	sine.frequency.value = freq;
+	var gain = ac.createGain();
+	sine.connect(gain);
+	gain.connect(ac.destination);
+	sine.start();
+	// envelope
+	var now = ac.currentTime;
+	gain.gain.setValueAtTime(0,now);
+  gain.gain.linearRampToValueAtTime(amp,now+0.005); gain.gain.linearRampToValueAtTime(0,now+0.405);
+	// schedule cleanup
+	setTimeout(function() {
+		sine.stop();
+		sine.disconnect(gain);
+		gain.disconnect(ac.destination);
+	},1000);
+};
