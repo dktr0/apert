@@ -45,7 +45,13 @@ function baseOnLoad() {
       console.log("received WebSocket message of unknown type");
     }
   }
-  apertInitialize(); // call initializer function provided by specific loaded JavaScript
+  if (typeof apertInitialize == 'function') {
+    apertInitialize(); // call initializer function provided by specific loaded JavaScript
+    console.log('Called apertInitialize.');
+  }else{
+    console.log('There was no apertInitialize function. You can make one if you like!');
+  }
+
 }
 
 function testOn() {
