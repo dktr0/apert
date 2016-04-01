@@ -29,7 +29,8 @@ SimpleMonoSample = function(url) {
   this.playing = false;
 }
 
-SimpleMonoSample.prototype.play = function (dur,rate,startPos) {
+SimpleMonoSample.prototype.play = function (amp,dur,rate,startPos) {
+  if(amp == null) amp = 1;
   if(rate == null) rate = 1; // if 2nd argument not given, defaults to 1
   if(startPos == null) startPos = 0.0; // if 3rd arg not given, defaults 0
   if(this.playing == false) { // only play if not already playing
@@ -41,8 +42,8 @@ SimpleMonoSample.prototype.play = function (dur,rate,startPos) {
     var now = ac.currentTime;
     this.source.start(now,startPos);
     this.gain.gain.setValueAtTime(0,now);
-    this.gain.gain.linearRampToValueAtTime(1,now+0.003); // 3 ms fade-in
-    this.gain.gain.linearRampToValueAtTime(1,now+dur-0.003); // hold
+    this.gain.gain.linearRampToValueAtTime(amp,now+0.003); // 3 ms fade-in
+    this.gain.gain.linearRampToValueAtTime(amp,now+dur-0.003); // hold
     this.gain.gain.linearRampToValueAtTime(0,now+dur);  // 3 ms fade-out
     var closure = this;
     setTimeout(function() {
@@ -55,17 +56,18 @@ function apertInitialize() {
   simpleMonoSampleBank = new Array(10);
   for(var n=0;n<10;n++) {
     console.log("created synth " + n)
-    simpleMonoSampleBank[n] = new SimpleMonoSample("uhoh-mono-16bit.wav");
+    // simpleMonoSampleBank[n] = new SimpleMonoSample("uhoh-mono-16bit.wav");
+    simpleMonoSampleBank[n] = new SimpleMonoSample("RockScrape11.wav");
   }
 }
 
-function playSimpleMonoSample(dur,rate,startPos) {
+function playSimpleMonoSample(amp,dur,rate,startPos) {
   var n;
   for(n=0;n<10;n++) {
     if(simpleMonoSampleBank[n].playing==false)break;
   }
   if(n<10) {
-    simpleMonoSampleBank[n].play(dur,rate,startPos);
+    simpleMonoSampleBank[n].play(amp,dur,rate,startPos);
   }
   else console.log("warning: all synth instances already plaing");
 }
