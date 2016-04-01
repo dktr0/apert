@@ -82,6 +82,7 @@ wss.broadcast = function(data) {
 wss.on('connection',function(ws) {
   var location = url.parse(ws.upgradeReq.url, true);
   console.log("new WebSocket connection: " + location);
+  sendClientCount();
   ws.on('message',function(m) {
       var n = JSON.parse(m);
       if(n.password != password) {
@@ -110,7 +111,7 @@ wss.on('connection',function(ws) {
 // make it go
 server.listen(tcpPort, function () { console.log('Listening on ' + server.address().port) });
 
-// send refresh count every 3 seconds
+// send refresh count every 2.9 seconds
 function sendRefreshCount() {
   var json = {type:'refreshCount',count:apertRefreshCount};
   var s = JSON.stringify(json);
@@ -118,7 +119,17 @@ function sendRefreshCount() {
 }
 setInterval(function() {
   sendRefreshCount();
-},3000);
+},2900);
+
+// send connected clients count every 5.3 seconds
+function sendClientCount() {
+  var json = {type:'clientCount',count:wss.clients.length};
+  var s = JSON.stringify(json);
+  wss.broadcast(s);
+}
+setInterval(function() {
+  sendClientCount();
+},5300);
 
 // create OSC server (listens on UDP port, resends OSC messages to browsers)
 if(oscPort != null) {
