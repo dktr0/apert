@@ -19,6 +19,7 @@ var knownOpts = {
     "folder" : [String, null],
     "tcp-port" : [Number, null],
     "osc-port" : [Number, null],
+    "jquery" : [String, null],
     "help": Boolean
 };
 
@@ -27,7 +28,8 @@ var shortHands = {
     "t" : ["--tcp-port"],
     "o" : ["--osc-port"],
     "f" : ["--folder"],
-    "l" : ["--load"]
+    "l" : ["--load"],
+    "j" : ["--jquery"]
 };
 
 var parsed = nopt(knownOpts,shortHands,process.argv,2);
@@ -40,6 +42,7 @@ if(parsed['help']!=null) {
     stderr.write(" --osc-port (-o) [number]  UDP port on which to receive OSC messages (default: none)\n");
     stderr.write(" --folder (-f) [path]      path to folder from which to serve additional files\n");
     stderr.write(" --load (-l) [path]        path (appended to folder path) to specific JavaScript added to page\n");
+    stderr.write(" --jquery (-j) [path]      path to local jQuery file which will be served\n");
     process.exit(1);
 }
 
@@ -59,6 +62,19 @@ var javascript = parsed['load'];
 var specific;
 loadJavascript();
 
+var jqueryPath = parsed['jquery'];
+var jquery;
+if(jqueryPath!=null) {
+  fs.readFile(jqueryPath,'utf8', function (err,data) {
+    if (err) {
+      console.log("*** PROBLEM: unable to load " + jqueryPath + ": " + err);
+      return;
+    }
+    jquery = data;
+    updateHtml();
+  });
+}
+
 // create HTTP (Express) server
 var server = http.createServer();
 var app = express();
@@ -69,6 +85,10 @@ app.get('/', function(req, res, next) {
 });
 app.get('/control', function(req,res,next) {
   if(controlHtml != null) res.send(controlHtml);
+  res.end();
+});
+app.get('/jquery', function(req,res,next) {
+  if(jquery != null) res.send(jquery);
   res.end();
 });
 app.use(express.static(folder));
@@ -166,6 +186,8 @@ if(oscPort != null) {
   });
 }
 
+var base;
+
 function loadBase() {
   fs.readFile('base.js','utf8', function (err,data) {
     if (err) {
@@ -189,7 +211,9 @@ function updateHtml() {
   if(base != null) work = work + base;
   work = work+ '</script><script>';
   if(specific != null) work = work + specific;
-  work = work + '</script></head><body onload="baseOnLoad()"></body></html>';
+  work = work + '</script>';
+  if(jquery != null) work = work + '<script src="jquery"></script>';
+  work = work + '</head><body onload="baseOnLoad()"></body></html>';
   html = work;
 }
 
