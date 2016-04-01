@@ -94,7 +94,7 @@ function simpleSaw(freq,amp) {
 
 function generativeSaw(freqs,amp) {
   var temp = [220,330,440,550,660,770,880,990,1100];
-  var freq = temp[Math.floor(Math.random()*temps.length)];
+  var freq = temp[Math.floor(Math.random()*temp.length)];
 	var sine = ac.createOscillator();
 	sine.type = 'sawtooth';
 	sine.frequency.value = freq;
