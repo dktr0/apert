@@ -102,7 +102,7 @@ wss.broadcast = function(data) {
       this.clients[i].send(data);
     }
     catch(e) {
-      console.log("warning: exception in ")
+      console.log("warning: exception in websocket broadcast");
     }
   }
 };
