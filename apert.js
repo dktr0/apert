@@ -97,7 +97,14 @@ server.on('request',app);
 // create WebSocket server
 var wss = new WebSocket.Server({server: server});
 wss.broadcast = function(data) {
-  for (var i in this.clients) this.clients[i].send(data);
+  for (var i in this.clients) {
+//    try {
+      this.clients[i].send(data);
+//    }
+//    catch(e) {
+//      console.log("warning: exception in ")
+//    }
+  }
 };
 wss.on('connection',function(ws) {
   var location = url.parse(ws.upgradeReq.url, true);
