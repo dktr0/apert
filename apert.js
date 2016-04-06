@@ -226,7 +226,7 @@ function updateHtml() {
     work = work + specific;
     work = work + '</script>';
   }
-  work = work + '</head><body onload="baseOnLoad()"></body></html>';
+  work = work + '</head><body></body></html>';
   html = work;
 }
 
