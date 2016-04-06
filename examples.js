@@ -43,8 +43,10 @@ SimpleMonoSample.prototype.play = function (amp,dur,rate,startPos) {
     this.source.start(now,startPos);
     this.gain.gain.setValueAtTime(0,now);
     this.gain.gain.linearRampToValueAtTime(amp,now+0.003); // 3 ms fade-in
-    this.gain.gain.linearRampToValueAtTime(amp,now+dur-0.003); // hold
-    this.gain.gain.linearRampToValueAtTime(0,now+dur);  // 3 ms fade-out
+    if (dur > 0){
+      this.gain.gain.linearRampToValueAtTime(amp,now+dur-0.003);  // hold
+      this.gain.gain.linearRampToValueAtTime(0,now+dur);  // 3 ms fade-out
+    }
     var closure = this;
     setTimeout(function() {
       closure.playing = false; // make synth available again...
