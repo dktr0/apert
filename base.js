@@ -1,7 +1,10 @@
 var ac; // audio context
 var apertRefreshCount;
+var baseOnLoadAlreadyCalled = false;
 
 function baseOnLoad() {
+  if(baseOnLoadAlreadyCalled)return;
+  baseOnLoadAlreadyCalled=true;
   ac = new (window.AudioContext||window.webkitAudioContext)();
   window.WebSocket = window.WebSocket || window.MozWebSocket;
   // *** port should not be hardwired in the line below!!!
