@@ -71,6 +71,7 @@ function baseOnLoad() {
 
 function testOn() {
   if(ac.test == null) {
+    baseOnLoad();
     ac.test = {};
     ac.test.sine = ac.createOscillator();
     ac.test.sine.type = 'square';
@@ -88,6 +89,7 @@ function testOn() {
 }
 
 function testOff() {
+  baseOnLoad();
   if(ac.test != null) {
     ac.test.gain.disconnect(ac.destination);
     ac.test = null;
@@ -95,6 +97,7 @@ function testOff() {
 }
 
 function simple(freq,amp) {
+  baseOnLoad();
 	var sine = ac.createOscillator();
 	sine.type = 'sine';
 	sine.frequency.value = freq;
