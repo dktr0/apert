@@ -104,7 +104,7 @@ function testOff() {
 function silent() {
 	var sine = ac.createOscillator();
 	sine.type = 'sine';
-	sine.frequency.value = freq;
+	sine.frequency.value = 440;
 	var gain = ac.createGain();
 	sine.connect(gain);
 	gain.connect(ac.destination);
