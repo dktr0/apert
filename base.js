@@ -110,6 +110,7 @@ function silent() {
 }
 
 document.addEventListener('touchend',function() {
+  console.log("about to call silent");
   silent();
 },false);
 
@@ -133,5 +134,3 @@ function simple(freq,amp) {
 		gain.disconnect(ac.destination);
 	},1000);
 };
-
-document.addEventListener('')
