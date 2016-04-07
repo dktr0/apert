@@ -6,19 +6,7 @@ function appendToDocument(x) {
   document.body.innerHTML += '<div>' + x + '</div>';
 }
 
-function baseOnLoad() {
-  if(baseOnLoadAlreadyCalled)return;
-  appendToDocument("baseOnLoad called");
-  baseOnLoadAlreadyCalled=true;
-  try {
-    window.AudioContext = window.AudioContext||window.webkitAudioContext;
-    ac = new AudioContext();
-    console.log("got audio context in ac");
-  }
-  catch(e) {
-    alert('Web Audio API is not supported in this browser');
-  }
-  // ac = new (window.AudioContext||window.webkitAudioContext)();
+function bodyOnLoad() {
   window.WebSocket = window.WebSocket || window.MozWebSocket;
   // *** port should not be hardwired in the line below!!!
   var url = 'ws://' + location.hostname + ':8000';
@@ -61,13 +49,28 @@ function baseOnLoad() {
       console.log("received WebSocket message of unknown type");
     }
   }
+}
+
+function baseOnLoad() {
+  if(baseOnLoadAlreadyCalled)return;
+  appendToDocument("baseOnLoad called");
+  console.log("baseOnLoad called");
+  baseOnLoadAlreadyCalled=true;
+  try {
+    window.AudioContext = window.AudioContext||window.webkitAudioContext;
+    ac = new AudioContext();
+    console.log("got audio context in ac");
+  }
+  catch(e) {
+    alert('Web Audio API is not supported in this browser');
+  }
   if (typeof apertInitialize == 'function') {
     apertInitialize(); // call initializer function provided by specific loaded JavaScript
     console.log('Called apertInitialize.');
   }else{
     console.log('There was no apertInitialize function. You can make one if you like!');
   }
-
+  // ac = new (window.AudioContext||window.webkitAudioContext)();
 }
 
 function testOn() {
