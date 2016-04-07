@@ -19,7 +19,7 @@ function bodyOnLoad() {
     console.log("ERROR opening websocket connection");
   };
   ws.onmessage = function (m) {
-    appendToBody("message");
+    appendToDocument("message");
     var data = JSON.parse(m.data);
     if(data.type == 'refreshCount') {
       // not logging refreshCount to avoid excessively busy logging
