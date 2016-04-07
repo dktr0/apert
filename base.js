@@ -19,6 +19,7 @@ function bodyOnLoad() {
     console.log("ERROR opening websocket connection");
   };
   ws.onmessage = function (m) {
+    appendToBody("message");
     var data = JSON.parse(m.data);
     if(data.type == 'refreshCount') {
       // not logging refreshCount to avoid excessively busy logging
@@ -74,6 +75,19 @@ function baseOnLoad() {
   // ac = new (window.AudioContext||window.webkitAudioContext)();
 }
 
+// a silent note, to be triggered by touch event calling baseOnLoad to unmute iOS audio
+function silent() {
+	var sine = ac.createOscillator();
+	sine.type = 'sine';
+	sine.frequency.value = 440;
+	var gain = ac.createGain();
+	sine.connect(gain);
+	gain.connect(ac.destination);
+	sine.start();
+	var now = ac.currentTime;
+	gain.gain.setValueAtTime(0,ac.currentTime);
+}
+
 function testOn() {
   baseOnLoad();
   if(ac.test == null) {
@@ -101,21 +115,9 @@ function testOff() {
   }
 }
 
-function silent() {
-	var sine = ac.createOscillator();
-	sine.type = 'sine';
-	sine.frequency.value = 440;
-	var gain = ac.createGain();
-	sine.connect(gain);
-	gain.connect(ac.destination);
-	sine.start();
-	var now = ac.currentTime;
-	gain.gain.setValueAtTime(0,ac.currentTime);
-}
-
 document.addEventListener('touchend',function() {
-  console.log("about to call silent");
-  silent();
+  appendToDocument('about to call baseOnLoad from touch event');
+  baseOnLoad();
 },false);
 
 function simple(freq,amp) {
