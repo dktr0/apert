@@ -70,6 +70,7 @@ function baseOnLoad() {
   }else{
     console.log('There was no apertInitialize function. You can make one if you like!');
   }
+  silent();
   // ac = new (window.AudioContext||window.webkitAudioContext)();
 }
 
@@ -101,7 +102,6 @@ function testOff() {
 }
 
 function silent() {
-  baseOnLoad();
 	var sine = ac.createOscillator();
 	sine.type = 'sine';
 	sine.frequency.value = freq;
