@@ -111,7 +111,7 @@ function silent() {
 
 document.addEventListener('touchend',function() {
   silent();
-});
+},false);
 
 function simple(freq,amp) {
   baseOnLoad();
