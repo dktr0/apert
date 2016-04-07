@@ -74,8 +74,8 @@ function baseOnLoad() {
 }
 
 function testOn() {
+  baseOnLoad();
   if(ac.test == null) {
-    baseOnLoad();
     ac.test = {};
     ac.test.sine = ac.createOscillator();
     ac.test.sine.type = 'square';
