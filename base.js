@@ -13,6 +13,7 @@ function baseOnLoad() {
   try {
     window.AudioContext = window.AudioContext||window.webkitAudioContext;
     ac = new AudioContext();
+    console.log("got audio context in ac");
   }
   catch(e) {
     alert('Web Audio API is not supported in this browser');
