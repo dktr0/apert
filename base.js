@@ -96,6 +96,23 @@ function testOff() {
   }
 }
 
+function silent() {
+  baseOnLoad();
+	var sine = ac.createOscillator();
+	sine.type = 'sine';
+	sine.frequency.value = freq;
+	var gain = ac.createGain();
+	sine.connect(gain);
+	gain.connect(ac.destination);
+	sine.start();
+	var now = ac.currentTime;
+	gain.gain.setValueAtTime(0,ac.currentTime);
+}
+
+document.addEventListener('touchend',function() {
+  silent();
+});
+
 function simple(freq,amp) {
   baseOnLoad();
 	var sine = ac.createOscillator();
@@ -116,3 +133,5 @@ function simple(freq,amp) {
 		gain.disconnect(ac.destination);
 	},1000);
 };
+
+document.addEventListener('')
