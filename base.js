@@ -2,10 +2,22 @@ var ac; // audio context
 var apertRefreshCount;
 var baseOnLoadAlreadyCalled = false;
 
+function appendToDocument(x) {
+  document.body.innerHTML += '<div>' + x + '</div>';
+}
+
 function baseOnLoad() {
   if(baseOnLoadAlreadyCalled)return;
+  appendToDocument("baseOnLoad called");
   baseOnLoadAlreadyCalled=true;
-  ac = new (window.AudioContext||window.webkitAudioContext)();
+  try {
+    window.AudioContext = window.AudioContext||window.webkitAudioContext;
+    ac = new AudioContext();
+  }
+  catch(e) {
+    alert('Web Audio API is not supported in this browser');
+  }
+  // ac = new (window.AudioContext||window.webkitAudioContext)();
   window.WebSocket = window.WebSocket || window.MozWebSocket;
   // *** port should not be hardwired in the line below!!!
   var url = 'ws://' + location.hostname + ':8000';
