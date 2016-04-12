@@ -1,25 +1,36 @@
 var ac; // audio context
 var apertRefreshCount;
-var baseOnLoadAlreadyCalled = false;
+var apertStartAlreadyCalled = false;
 
-function appendToDocument(x) {
-  document.body.innerHTML += '<div>' + x + '</div>';
+// within the apert framework, the function aperLog is called for all log
+// messages. if you provide a function called apertLogExtra with a single
+// argument it is also called when a log message is issued, with the text
+// of the message as the argument:
+
+function apertLog(x) {
+  console.log("apert: " + x);
+  if (typeof apertLogExtra == 'function') {
+    apertLogExtra(x);
+  }
 }
 
-function bodyOnLoad() {
+// the function below is called automatically when the document in a client
+// browser is loaded, and initializes WebSocket communication with the apert
+// server:
+
+function apertStartWebSocket() {
   window.WebSocket = window.WebSocket || window.MozWebSocket;
   // *** port should not be hardwired in the line below!!!
   var url = 'ws://' + location.hostname + ':8000';
-  console.log("attempting websocket connection to " + url);
+  apertLog("attempting websocket connection to " + url);
   ws = new WebSocket(url);
   ws.onopen = function () {
-    console.log("websocket connection opened");
+    apertLog("websocket connection opened");
   };
   ws.onerror = function () {
-    console.log("ERROR opening websocket connection");
+    apertLog("ERROR opening websocket connection");
   };
   ws.onmessage = function (m) {
-    appendToDocument("message");
     var data = JSON.parse(m.data);
     if(data.type == 'refreshCount') {
       // not logging refreshCount to avoid excessively busy logging
@@ -33,50 +44,54 @@ function bodyOnLoad() {
       else apertRefreshCount = data.count;
     }
     else if(data.type == 'clientCount') {
-      console.log("client count is " + data.count);
+      apertLog("client count is " + data.count);
     }
     else if(data.type == 'all') {
-      console.log("/all " + data.name + " " + data.args);
+      apertLog("/all " + data.name + " " + data.args);
       var name = data.name;
       if(data.args.length == 0) eval(name + "()");
       else if(data.args.length == 1) eval(name + "(data.args[0])");
       else if(data.args.length == 2) eval(name + "(data.args[0],data.args[1])");
       else if(data.args.length == 3) eval(name + "(data.args[0],data.args[1],data.args[2])");
       else if(data.args.length == 4) eval(name + "(data.args[0],data.args[1],data.args[2],data.args[3])");
-      else console.log("warning: too many arguments in all message, apert is unfinished software, so sorry, try again later");
+      else apertLog("warning: too many arguments in all message, apert is unfinished software, so sorry, try again later");
       // should probably check to make sure the function exists first, also!...
     }
     else {
-      console.log("received WebSocket message of unknown type");
+      apertLog("received WebSocket message of unknown type");
     }
   }
 }
 
-function baseOnLoad() {
-  if(baseOnLoadAlreadyCalled)return;
-  appendToDocument("baseOnLoad called");
-  console.log("baseOnLoad called");
-  baseOnLoadAlreadyCalled=true;
+// the function below should be called by artist provided code in order
+// order to create (once) a valid audio context. For things to work on iOS,
+// this function needs to be called from a user interaction event:
+
+function apertStartAudio() {
+  if(apertStartAudioAlreadyCalled)return;
+  apertLog("creating new Web audio context");;
+  apertStartAudioAlreadyCalled=true;
   try {
     window.AudioContext = window.AudioContext||window.webkitAudioContext;
     ac = new AudioContext();
-    console.log("got audio context in ac");
+    apertLog("created new audio context");
   }
   catch(e) {
     alert('Web Audio API is not supported in this browser');
   }
   if (typeof apertInitialize == 'function') {
+    apertLog('calling apertInitialize...');
     apertInitialize(); // call initializer function provided by specific loaded JavaScript
-    console.log('Called apertInitialize.');
+    apertLog('returned from apertInitialize');
   }else{
-    console.log('There was no apertInitialize function. You can make one if you like!');
+    apertLog('There was no apertInitialize function. You can make one if you like!');
   }
-  silent();
+  apertSilentNote(); // create a silent synth to unmute audio on iOS
   // ac = new (window.AudioContext||window.webkitAudioContext)();
 }
 
-// a silent note, to be triggered by touch event calling baseOnLoad to unmute iOS audio
-function silent() {
+// a silent note, to be triggered by touch event calling apertStartAudio to unmute iOS audio
+function apertSilentNote() {
 	var sine = ac.createOscillator();
 	sine.type = 'sine';
 	sine.frequency.value = 440;
@@ -89,7 +104,7 @@ function silent() {
 }
 
 function testOn() {
-  baseOnLoad();
+  apertStartAudio();
   if(ac.test == null) {
     ac.test = {};
     ac.test.sine = ac.createOscillator();
@@ -108,7 +123,7 @@ function testOn() {
 }
 
 function testOff() {
-  baseOnLoad();
+  apertStartAudio();
   if(ac.test != null) {
     ac.test.gain.disconnect(ac.destination);
     ac.test = null;
@@ -116,12 +131,12 @@ function testOff() {
 }
 
 document.addEventListener('touchend',function() {
-  appendToDocument('about to call baseOnLoad from touch event');
-  baseOnLoad();
+  apertLog('about to call apertStartAudio from touch event');
+  apertStartAudio();
 },false);
 
 function simple(freq,amp) {
-  baseOnLoad();
+  apertStartAudio();
 	var sine = ac.createOscillator();
 	sine.type = 'sine';
 	sine.frequency.value = freq;
