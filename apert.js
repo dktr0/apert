@@ -226,7 +226,7 @@ function updateHtml() {
     work = work + specific;
     work = work + '</script>';
   }
-  work = work + '</head><body onload="bodyOnLoad()"></body></html>';
+  work = work + '</head><body onload="apertStartWebSocket()"></body></html>';
   html = work;
 }
 
