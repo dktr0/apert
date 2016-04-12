@@ -1,6 +1,7 @@
 var ac; // audio context
 var apertRefreshCount;
-var apertStartAlreadyCalled = false;
+var apertClientCount;
+var apertStartAudioAlreadyCalled = false;
 
 // within the apert framework, the function aperLog is called for all log
 // messages. if you provide a function called apertLogExtra with a single
@@ -44,7 +45,10 @@ function apertStartWebSocket() {
       else apertRefreshCount = data.count;
     }
     else if(data.type == 'clientCount') {
-      apertLog("client count is " + data.count);
+      if(data.count != apertClientCount) {
+        apertLog("client count is " + data.count);
+        apertClientCount = data.count;
+      }
     }
     else if(data.type == 'all') {
       apertLog("/all " + data.name + " " + data.args);
@@ -69,7 +73,6 @@ function apertStartWebSocket() {
 
 function apertStartAudio() {
   if(apertStartAudioAlreadyCalled)return;
-  apertLog("creating new Web audio context");;
   apertStartAudioAlreadyCalled=true;
   try {
     window.AudioContext = window.AudioContext||window.webkitAudioContext;
