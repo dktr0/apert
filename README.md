@@ -1,3 +1,16 @@
+# The Big Picture
+
+apert lets you provide JavaScript functions and other files (for example, sound files) to a network of web browsers (for example, on audience members' mobile devices) and then call those functions through a centralized server interface. In slightly more detail:
+
+1. You write a JavaScript file that defines some functions to respond to messages. For example, you might define functions that use the Web Audio API to start a particular type of synthesized sound. The file default.js in the apert folder is an example of such a file (and is also used by default when no alternative is provided - it is useful for testing).
+
+2. You launch the apert server (apert.js) somewhere and point it to your JavaScript. As noted above, if you don't point it to your own JavaScript file, it uses default.js, which is useful for testing devices and networks, etc.
+
+3. From any number of web browsers, surf to the address of your apert server. If you are running the apert server on your own machine and testing on your own machine, you could use the address 127.0.0.1:8000 in your web browser. If you are running the server on one machine and testing from other machines, you'll need to figure out what the address of the "server machine" on the network is.
+
+4. Issue messages that get sent to all the web browsers. The top paragraph of the section Protocol (below) explains three ways to do this. A simple test without providing any of your own code is to use the built-in control interface to turn a test tone on and off, and use the "all" button to trigger the example synth function called 'simple' in default.js: you'd enter 'simple' in the leftmost field of the 'all' interface, a frequency in Hertz in the next field of the 'all' interface, and an amplitude in absolute values (i.e. 1.0 is the maximum) in the next field. This will cause the 'simple' function to be called with those arguments on all web browsers connected to the apert page.
+
+You can test apert "out of the box" using the synths/functions defined in default.js and the control interface. Then you can make more original and fancy things by (a) writing your own JavaScript files to provide and (b) issuing messages (through the server to the browsers) in your own way (for example, from another programming environment or application that you create, using either OSC over UDP or JSON over WebSockets).
 
 # Protocol
 
