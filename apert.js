@@ -52,6 +52,17 @@ if(password == null) {
     stderr.write("use --help to display available options\n");
     process.exit(1);
 }
+if(password == "true") {
+  stderr.write("Error: --password option is not optional (nor can it be the text 'true')!\n");
+  stderr.write("use --help to display available options\n");
+  process.exit(1);
+}
+if(password[0]=='-') {
+  stderr.write("Error: --password cannot begin with a dash (to avoid confusion with other options)");
+  stderr.write("use --help to display available options\n");
+  process.exit(1);
+}
+
 var tcpPort = parsed['tcp-port'];
 if(tcpPort==null) tcpPort = 8000;
 var oscPort = parsed['osc-port'];
