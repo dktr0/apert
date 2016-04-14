@@ -20,7 +20,7 @@ messages might be delivered to apert server:
 1. via Open Sound Control (OSC) messages sent over UDP to the apert server's UDP port
 2. as JSON objects delivered to the server over its WebSocket connection
 3. using the web control interface provided by the apert server as control.html (for
-  example by pointing a browser to http://127.0.0.1:8080/control.html if apert is running
+  example by pointing a browser to http://127.0.0.1:8080/control if apert is running
   on the local computer (127.0.0.1) using TCP port 8080) - this is just an extra
   interface on top of method 2 (above).
 
