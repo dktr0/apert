@@ -68,8 +68,9 @@ if(tcpPort==null) tcpPort = 8000;
 var oscPort = parsed['osc-port'];
 
 var folder = parsed['folder'];
-if(folder == null) folder = __dirname;
 var javascript = parsed['load'];
+if(folder == null && javascript == null) javascript = 'default.js';
+if(folder == null) folder = __dirname;
 var specific;
 loadJavascript();
 
