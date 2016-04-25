@@ -95,6 +95,15 @@ app.get('/', function(req, res, next) {
   if(html != null) res.send(html);
   res.end();
 });
+app.get('/base.js', function(req, res, next) {
+  var options = { root: __dirname };
+  res.sendFile("base.js", options, function (err) {
+    if (err) {
+      console.log(err);
+      res.status(err.status).end();
+    }
+  });
+});
 app.get('/control', function(req,res,next) {
   if(controlHtml != null) res.send(controlHtml);
   res.end();
