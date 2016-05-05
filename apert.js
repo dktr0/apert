@@ -106,6 +106,23 @@ app.get('/jquery', function(req,res,next) {
 app.use(express.static(folder));
 server.on('request',app);
 
+// create shared memory
+var memory = {};
+
+function memorySet(id,key,value) {
+	if(memory[id] == null) memory[id] = {};
+	memory[id][key] = value;
+}
+function memoryDump(requester) {
+	var s = JSON.stringify(memory);
+	try {
+		requester.send(s);
+	}
+	catch(e) {
+		console.log("warning: exception in memoryDump websocket set");
+	}
+}
+
 // create WebSocket server
 var wss = new WebSocket.Server({server: server});
 wss.broadcast = function(data) {
@@ -124,13 +141,21 @@ wss.on('connection',function(ws) {
   sendClientCount();
   ws.on('message',function(m) {
       var n = JSON.parse(m);
-      if(n.password != password) {
+      if(n.request == "set") {
+	// set value in shared memory entry associated with sender of message
+	sharedMemorySet(location,n.key,n.value);
+      }
+      else if(n.password != password) {
         console.log("invalid password")
       }
       else if(n.request == null) {
         console.log("request field is missing")
       }
       else {
+	if(n.request == "dump") {
+		// request complete dump of entire shared memory
+		sharedMemoryDump(ws);
+	}
         if(n.request == "all") {
           all(n.name,n.args);
         }
