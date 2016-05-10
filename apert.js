@@ -11,6 +11,7 @@ var osc = require('osc');
 var fs = require('fs');
 
 var apertRefreshCount = 0;
+var apertConnectionCount = 0;
 
 // parse command-line options
 var knownOpts = {
@@ -132,6 +133,10 @@ function memoryDump(requester) {
 		console.log("warning: exception in memoryDump websocket set");
 	}
 }
+function memoryClose(id) {
+  // remove all shared memory entries for the given id
+  delete memory[id];
+}
 
 // create WebSocket server
 var wss = new WebSocket.Server({server: server});
@@ -148,14 +153,15 @@ wss.broadcast = function(data) {
 wss.on('connection',function(ws) {
   // var location = url.parse(ws.upgradeReq.url, true);
   var ip = ws.upgradeReq.connection.remoteAddress;
-  console.log(JSON.stringify(ws.upgradeReq.connection));
+  var id = "id" + (apertConnectionCount++);
+  memorySet(id,'address',ip);
   console.log("new WebSocket connection: " + ip);
   sendClientCount();
   ws.on('message',function(m) {
       var n = JSON.parse(m);
       if(n.request == "set") {
-	// set value in shared memory entry associated with sender of message
-	memorySet(ip,n.key,n.value);
+        // set value in shared memory entry associated with sender of message
+        memorySet(id,n.key,n.value);
       }
       else if(n.password != password) {
         console.log("invalid password")
@@ -164,10 +170,10 @@ wss.on('connection',function(ws) {
         console.log("request field is missing")
       }
       else {
-	if(n.request == "dump") {
-		// request complete dump of entire shared memory
-		memoryDump(ws);
-	}
+        if(n.request == "dump") {
+          // request complete dump of entire shared memory
+          memoryDump(ws);
+        }
         if(n.request == "all") {
           all(n.name,n.args);
         }
@@ -181,6 +187,10 @@ wss.on('connection',function(ws) {
           folder(n.path);
         }
       }
+  });
+  ws.on('close',function() {
+    memoryClose(id);
+    console.log("connection " + id + " closed");
   });
 });
 

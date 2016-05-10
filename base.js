@@ -15,15 +15,17 @@ function apertLog(x) {
   }
 }
 
-// the function below is called automatically when the document in a client
-// browser is loaded, and initializes WebSocket communication with the apert
-// server:
-
 function apertMemorySet(key,value) {
+  // call this in your code to set a key-value pair in a shared memory
+  // entries are unique to each client/browser
   var m = { request: 'set', key: key, value: value};
   var n = JSON.stringify(m);
   ws.send(n);
 }
+
+// the function below is called automatically when the document in a client
+// browser is loaded, and initializes WebSocket communication with the apert
+// server:
 
 function apertStartWebSocket() {
   window.WebSocket = window.WebSocket || window.MozWebSocket;
@@ -33,7 +35,6 @@ function apertStartWebSocket() {
   ws = new WebSocket(url);
   ws.onopen = function () {
     apertLog("websocket connection opened");
-    apertMemorySet('apertStatus','open');
   };
   ws.onerror = function () {
     apertLog("ERROR opening websocket connection");
