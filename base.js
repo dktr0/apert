@@ -19,6 +19,12 @@ function apertLog(x) {
 // browser is loaded, and initializes WebSocket communication with the apert
 // server:
 
+function apertMemorySet(key,value) {
+  var m = { request: 'set', key: key, value: value};
+  var n = JSON.stringify(m);
+  ws.send(n);
+}
+
 function apertStartWebSocket() {
   window.WebSocket = window.WebSocket || window.MozWebSocket;
   // *** port should not be hardwired in the line below!!!
@@ -27,6 +33,7 @@ function apertStartWebSocket() {
   ws = new WebSocket(url);
   ws.onopen = function () {
     apertLog("websocket connection opened");
+    apertMemorySet('apertStatus','open');
   };
   ws.onerror = function () {
     apertLog("ERROR opening websocket connection");

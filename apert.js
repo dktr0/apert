@@ -114,7 +114,8 @@ function memorySet(id,key,value) {
 	memory[id][key] = value;
 }
 function memoryDump(requester) {
-	var s = JSON.stringify(memory);
+  var m = { type: 'dump', result: memory};
+	var s = JSON.stringify(m);
 	try {
 		requester.send(s);
 	}
@@ -136,14 +137,16 @@ wss.broadcast = function(data) {
   }
 };
 wss.on('connection',function(ws) {
-  var location = url.parse(ws.upgradeReq.url, true);
-  console.log("new WebSocket connection: " + location);
+  // var location = url.parse(ws.upgradeReq.url, true);
+  var ip = ws.upgradeReq.connection.remoteAddress;
+  console.log(JSON.stringify(ws.upgradeReq.connection));
+  console.log("new WebSocket connection: " + ip);
   sendClientCount();
   ws.on('message',function(m) {
       var n = JSON.parse(m);
       if(n.request == "set") {
 	// set value in shared memory entry associated with sender of message
-	sharedMemorySet(location,n.key,n.value);
+	memorySet(ip,n.key,n.value);
       }
       else if(n.password != password) {
         console.log("invalid password")
@@ -154,7 +157,7 @@ wss.on('connection',function(ws) {
       else {
 	if(n.request == "dump") {
 		// request complete dump of entire shared memory
-		sharedMemoryDump(ws);
+		memoryDump(ws);
 	}
         if(n.request == "all") {
           all(n.name,n.args);
