@@ -65,6 +65,8 @@ function apertStartWebSocket() {
       else if(data.args.length == 2) eval(name + "(data.args[0],data.args[1])");
       else if(data.args.length == 3) eval(name + "(data.args[0],data.args[1],data.args[2])");
       else if(data.args.length == 4) eval(name + "(data.args[0],data.args[1],data.args[2],data.args[3])");
+      else if(data.args.length == 5) eval(name + "(data.args[0],data.args[1],data.args[2],data.args[3],data.args[4])");
+      else if(data.args.length == 6) eval(name + "(data.args[0],data.args[1],data.args[2],data.args[3],data.args[4],data.args[5])");
       else apertLog("warning: too many arguments in all message, apert is unfinished software, so sorry, try again later");
       // should probably check to make sure the function exists first, also!...
     }
