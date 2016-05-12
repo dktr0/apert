@@ -58,6 +58,12 @@ function apertStartWebSocket() {
         apertClientCount = data.count;
       }
     }
+    else if(data.type == 'sendTo') {
+      apertLog("/sendTo " + data.value);
+      if (typeof apertReceivedSendTo == 'function') {
+        apertReceivedSendTo(data.value);
+      }
+    }
     else if(data.type == 'all') {
       apertLog("/all " + data.name + " " + data.args);
       var name = data.name;

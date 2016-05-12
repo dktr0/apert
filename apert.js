@@ -118,6 +118,7 @@ server.on('request',app);
 
 // create shared memory
 var memory = {};
+var sockets = {};
 
 function memorySet(id,key,value) {
 	if(memory[id] == null) memory[id] = {};
@@ -137,6 +138,7 @@ function memoryGet(requester,id,key) {
 }
 function memoryDump(requester) {
   var m = { type: 'dump', result: memory};
+  console.log(m);
 	var s = JSON.stringify(m);
 	try {
 		requester.send(s);
@@ -148,6 +150,12 @@ function memoryDump(requester) {
 function memoryClose(id) {
   // remove all shared memory entries for the given id
   delete memory[id];
+}
+function socketSet(id,socket) {
+  sockets[id] = socket;
+}
+function getSocketForId(id) {
+  return sockets[id];
 }
 
 // create WebSocket server
@@ -167,6 +175,7 @@ wss.on('connection',function(ws) {
   var ip = ws.upgradeReq.connection.remoteAddress;
   var id = "id" + (apertConnectionCount++);
   memorySet(id,'address',ip);
+  socketSet(id,ws);
   console.log("new WebSocket connection: " + ip);
   sendClientCount();
   ws.on('message',function(m) {
@@ -177,7 +186,7 @@ wss.on('connection',function(ws) {
       }
       if(n.request == "get") {
         // get value in shared memory entry associated with sender of message
-        memoryGet(ws,ip,n.key);
+        memoryGet(ws,id,n.key);
       }
       else if(n.password != password) {
         console.log("invalid password")
@@ -191,7 +200,19 @@ wss.on('connection',function(ws) {
           memoryDump(ws);
         }
         if(n.request == 'setFor') {
-          memorySetFor()
+          memorySet(n.id,n.key,n.value);
+        }
+        if(n.request == 'sendTo') {
+          var addressee = getSocketForId(n.id);
+          var parcel = n.value;
+          var m = { type: 'sendTo', value: parcel};
+          var s = JSON.stringify(m);
+          try {
+            addressee.send(s);
+          }
+          catch(e) {
+            console.log("exception in sendTo send");
+          }
         }
         if(n.request == "all") {
           all(n.name,n.args);
