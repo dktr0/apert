@@ -113,6 +113,18 @@ function memorySet(id,key,value) {
 	if(memory[id] == null) memory[id] = {};
 	memory[id][key] = value;
 }
+function memoryGet(requester,id,key) {
+  if(memory[id] == null) memory[id] = {};
+  var value = memory[id][key];
+  var m = { type: 'get', key: key, value: value};
+  var s = JSON.stringify(m);
+  try {
+    requester.send(s);
+  }
+  catch(e) {
+    console.log("warning: exception in memoryGet websocket send")
+  }
+}
 function memoryDump(requester) {
   var m = { type: 'dump', result: memory};
 	var s = JSON.stringify(m);
@@ -120,7 +132,7 @@ function memoryDump(requester) {
 		requester.send(s);
 	}
 	catch(e) {
-		console.log("warning: exception in memoryDump websocket set");
+		console.log("warning: exception in memoryDump websocket send");
 	}
 }
 
@@ -145,8 +157,12 @@ wss.on('connection',function(ws) {
   ws.on('message',function(m) {
       var n = JSON.parse(m);
       if(n.request == "set") {
-	// set value in shared memory entry associated with sender of message
-	memorySet(ip,n.key,n.value);
+        // set value in shared memory entry associated with sender of message
+        memorySet(ip,n.key,n.value);
+      }
+      if(n.request == "get") {
+        // get value in shared memory entry associated with sender of message
+        memoryGet(ws,ip,n.key);
       }
       else if(n.password != password) {
         console.log("invalid password")
@@ -155,10 +171,13 @@ wss.on('connection',function(ws) {
         console.log("request field is missing")
       }
       else {
-	if(n.request == "dump") {
-		// request complete dump of entire shared memory
-		memoryDump(ws);
-	}
+        if(n.request == "dump") {
+          / request complete dump of entire shared memory
+          memoryDump(ws);
+        }
+        if(n.request == 'setFor') {
+          memorySetFor()
+        }
         if(n.request == "all") {
           all(n.name,n.args);
         }
