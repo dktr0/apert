@@ -15,15 +15,17 @@ function apertLog(x) {
   }
 }
 
-// the function below is called automatically when the document in a client
-// browser is loaded, and initializes WebSocket communication with the apert
-// server:
-
 function apertMemorySet(key,value) {
+  // call this in your code to set a key-value pair in a shared memory
+  // entries are unique to each client/browser
   var m = { request: 'set', key: key, value: value};
   var n = JSON.stringify(m);
   ws.send(n);
 }
+
+// the function below is called automatically when the document in a client
+// browser is loaded, and initializes WebSocket communication with the apert
+// server:
 
 function apertStartWebSocket() {
   window.WebSocket = window.WebSocket || window.MozWebSocket;
@@ -33,7 +35,6 @@ function apertStartWebSocket() {
   ws = new WebSocket(url);
   ws.onopen = function () {
     apertLog("websocket connection opened");
-    apertMemorySet('apertStatus','open');
   };
   ws.onerror = function () {
     apertLog("ERROR opening websocket connection");
@@ -65,6 +66,8 @@ function apertStartWebSocket() {
       else if(data.args.length == 2) eval(name + "(data.args[0],data.args[1])");
       else if(data.args.length == 3) eval(name + "(data.args[0],data.args[1],data.args[2])");
       else if(data.args.length == 4) eval(name + "(data.args[0],data.args[1],data.args[2],data.args[3])");
+      else if(data.args.length == 5) eval(name + "(data.args[0],data.args[1],data.args[2],data.args[3],data.args[4])");
+      else if(data.args.length == 6) eval(name + "(data.args[0],data.args[1],data.args[2],data.args[3],data.args[4],data.args[5])");
       else apertLog("warning: too many arguments in all message, apert is unfinished software, so sorry, try again later");
       // should probably check to make sure the function exists first, also!...
     }

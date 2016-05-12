@@ -11,6 +11,7 @@ var osc = require('osc');
 var fs = require('fs');
 
 var apertRefreshCount = 0;
+var apertConnectionCount = 0;
 
 // parse command-line options
 var knownOpts = {
@@ -95,6 +96,15 @@ app.get('/', function(req, res, next) {
   if(html != null) res.send(html);
   res.end();
 });
+app.get('/base.js', function(req, res, next) {
+  var options = { root: __dirname };
+  res.sendFile("base.js", options, function (err) {
+    if (err) {
+      console.log(err);
+      res.status(err.status).end();
+    }
+  });
+});
 app.get('/control', function(req,res,next) {
   if(controlHtml != null) res.send(controlHtml);
   res.end();
@@ -135,6 +145,10 @@ function memoryDump(requester) {
 		console.log("warning: exception in memoryDump websocket send");
 	}
 }
+function memoryClose(id) {
+  // remove all shared memory entries for the given id
+  delete memory[id];
+}
 
 // create WebSocket server
 var wss = new WebSocket.Server({server: server});
@@ -151,14 +165,15 @@ wss.broadcast = function(data) {
 wss.on('connection',function(ws) {
   // var location = url.parse(ws.upgradeReq.url, true);
   var ip = ws.upgradeReq.connection.remoteAddress;
-  console.log(JSON.stringify(ws.upgradeReq.connection));
+  var id = "id" + (apertConnectionCount++);
+  memorySet(id,'address',ip);
   console.log("new WebSocket connection: " + ip);
   sendClientCount();
   ws.on('message',function(m) {
       var n = JSON.parse(m);
       if(n.request == "set") {
         // set value in shared memory entry associated with sender of message
-        memorySet(ip,n.key,n.value);
+        memorySet(id,n.key,n.value);
       }
       if(n.request == "get") {
         // get value in shared memory entry associated with sender of message
@@ -172,7 +187,7 @@ wss.on('connection',function(ws) {
       }
       else {
         if(n.request == "dump") {
-          / request complete dump of entire shared memory
+          // request complete dump of entire shared memory
           memoryDump(ws);
         }
         if(n.request == 'setFor') {
@@ -191,6 +206,10 @@ wss.on('connection',function(ws) {
           folder(n.path);
         }
       }
+  });
+  ws.on('close',function() {
+    memoryClose(id);
+    console.log("connection " + id + " closed");
   });
 });
 
