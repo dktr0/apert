@@ -20,6 +20,7 @@ var knownOpts = {
     "tcp-port" : [Number, null],
     "osc-port" : [Number, null],
     "jquery" : [String, null],
+    "immortal" : Boolean,
     "help": Boolean
 };
 
@@ -29,10 +30,21 @@ var shortHands = {
     "o" : ["--osc-port"],
     "f" : ["--folder"],
     "l" : ["--load"],
-    "j" : ["--jquery"]
+    "j" : ["--jquery"],
+    "i" : ["--immortal"]
 };
 
 var parsed = nopt(knownOpts,shortHands,process.argv,2);
+
+var immortal = parsed['immortal'];
+if(immortal == null) immortal = false;
+if(immortal == true) {
+  stderr.write("immortal mode - exceptions will be ignored (use during critical performances, not during development/practice)\n");
+  process.on('uncaughtException', function(err) {
+    // do nothing on uncaught exceptions in order to hopefully
+    // not disrupt a time-limited performance that is in progress
+  });
+}
 
 if(parsed['help']!=null) {
     stderr.write("usage:\n");
@@ -42,6 +54,7 @@ if(parsed['help']!=null) {
     stderr.write(" --osc-port (-o) [number]  UDP port on which to receive OSC messages (default: none)\n");
     stderr.write(" --folder (-f) [path]      path to folder from which to serve additional files\n");
     stderr.write(" --load (-l) [path]        path (appended to folder path) to specific JavaScript added to page\n");
+    stderr.write(" --immortal (-i)           for use in performance with tested code (exceptions are silently ignored)\n");
     stderr.write(" --jquery (-j) [path]      path to local jQuery file which will be served\n");
     process.exit(1);
 }
