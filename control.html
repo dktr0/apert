@@ -21,6 +21,12 @@ function setup() {
     else if(data.type =='clientCount') {
       document.getElementById('clientCount').textContent = data.count;
     }
+    else if(data.type == 'dump') {
+      var result = data.result;
+      var s = JSON.stringify(result);
+      var div = document.getElementById('display');
+      div.innerHTML = s;
+    }
     else {
       console.log("received WebSocket message of unknown type = " + data.type);
     }
@@ -79,6 +85,14 @@ function refresh() {
   ws.send(n);
 }
 
+function dump() {
+  var password = getPassword();
+  if(password == null) return;
+  var m = { request: 'dump', password: password };
+  var n = JSON.stringify(m);
+  ws.send(n);
+}
+
 function testOn() {
   var password = getPassword();
   if(password == null) return;
@@ -127,6 +141,12 @@ function testOff() {
 <div>
   <button onclick="refresh()">refresh</button>
 </div><br/>
+
+<div>
+  <button onclick="dump()">dump</button>
+</div>
+
+<div id="display"></div>
 
 </body>
 </html>

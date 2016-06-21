@@ -15,6 +15,14 @@ function apertLog(x) {
   }
 }
 
+function apertMemorySet(key,value) {
+  // call this in your code to set a key-value pair in a shared memory
+  // entries are unique to each client/browser
+  var m = { request: 'set', key: key, value: value};
+  var n = JSON.stringify(m);
+  ws.send(n);
+}
+
 // the function below is called automatically when the document in a client
 // browser is loaded, and initializes WebSocket communication with the apert
 // server:
@@ -48,6 +56,12 @@ function apertStartWebSocket() {
       if(data.count != apertClientCount) {
         apertLog("client count is " + data.count);
         apertClientCount = data.count;
+      }
+    }
+    else if(data.type == 'sendTo') {
+      apertLog("/sendTo " + data.value);
+      if (typeof apertReceivedSendTo == 'function') {
+        apertReceivedSendTo(data.value);
       }
     }
     else if(data.type == 'all') {

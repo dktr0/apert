@@ -11,6 +11,7 @@ var osc = require('osc');
 var fs = require('fs');
 
 var apertRefreshCount = 0;
+var apertConnectionCount = 0;
 
 // parse command-line options
 var knownOpts = {
@@ -128,6 +129,48 @@ app.get('/jquery', function(req,res,next) {
 app.use(express.static(folder));
 server.on('request',app);
 
+// create shared memory
+var memory = {};
+var sockets = {};
+
+function memorySet(id,key,value) {
+	if(memory[id] == null) memory[id] = {};
+	memory[id][key] = value;
+}
+function memoryGet(requester,id,key) {
+  if(memory[id] == null) memory[id] = {};
+  var value = memory[id][key];
+  var m = { type: 'get', key: key, value: value};
+  var s = JSON.stringify(m);
+  try {
+    requester.send(s);
+  }
+  catch(e) {
+    console.log("warning: exception in memoryGet websocket send")
+  }
+}
+function memoryDump(requester) {
+  var m = { type: 'dump', result: memory};
+  console.log(m);
+	var s = JSON.stringify(m);
+	try {
+		requester.send(s);
+	}
+	catch(e) {
+		console.log("warning: exception in memoryDump websocket send");
+	}
+}
+function memoryClose(id) {
+  // remove all shared memory entries for the given id
+  delete memory[id];
+}
+function socketSet(id,socket) {
+  sockets[id] = socket;
+}
+function getSocketForId(id) {
+  return sockets[id];
+}
+
 // create WebSocket server
 var wss = new WebSocket.Server({server: server});
 wss.broadcast = function(data) {
@@ -141,18 +184,49 @@ wss.broadcast = function(data) {
   }
 };
 wss.on('connection',function(ws) {
-  var location = url.parse(ws.upgradeReq.url, true);
-  console.log("new WebSocket connection: " + location);
+  // var location = url.parse(ws.upgradeReq.url, true);
+  var ip = ws.upgradeReq.connection.remoteAddress;
+  var id = "id" + (apertConnectionCount++);
+  memorySet(id,'address',ip);
+  socketSet(id,ws);
+  console.log("new WebSocket connection: " + ip);
   sendClientCount();
   ws.on('message',function(m) {
       var n = JSON.parse(m);
-      if(n.password != password) {
+      if(n.request == "set") {
+        // set value in shared memory entry associated with sender of message
+        memorySet(id,n.key,n.value);
+      }
+      if(n.request == "get") {
+        // get value in shared memory entry associated with sender of message
+        memoryGet(ws,id,n.key);
+      }
+      else if(n.password != password) {
         console.log("invalid password")
       }
       else if(n.request == null) {
         console.log("request field is missing")
       }
       else {
+        if(n.request == "dump") {
+          // request complete dump of entire shared memory
+          memoryDump(ws);
+        }
+        if(n.request == 'setFor') {
+          memorySet(n.id,n.key,n.value);
+        }
+        if(n.request == 'sendTo') {
+          var addressee = getSocketForId(n.id);
+          var parcel = n.value;
+          var m = { type: 'sendTo', value: parcel};
+          var s = JSON.stringify(m);
+          try {
+            addressee.send(s);
+          }
+          catch(e) {
+            console.log("exception in sendTo send");
+          }
+        }
         if(n.request == "all") {
           all(n.name,n.args);
         }
@@ -166,6 +240,10 @@ wss.on('connection',function(ws) {
           folder(n.path);
         }
       }
+  });
+  ws.on('close',function() {
+    memoryClose(id);
+    console.log("connection " + id + " closed");
   });
 });
 
