@@ -129,6 +129,17 @@ app.get('/jquery', function(req,res,next) {
 app.use(express.static(folder));
 server.on('request',app);
 
+// create global documents
+var globalDocs = {};
+
+function write(key,value) {
+  globalDocs[key] = value;
+}
+
+function read(key) {
+  return globalDocs[key];
+}
+
 // create shared memory
 var memory = {};
 var sockets = {};
@@ -193,6 +204,14 @@ wss.on('connection',function(ws) {
   sendClientCount();
   ws.on('message',function(m) {
       var n = JSON.parse(m);
+      if(n.request == "read") {
+        var x = read(n.key);
+        if(x != null) {
+          var response = { type: 'read', key: n.key, value: x };
+          try { ws.send(JSON.stringify(response)); }
+          catch(e) { console.log("exception in websocket send (responding to request: read)"); }
+        }
+      }
       if(n.request == "set") {
         // set value in shared memory entry associated with sender of message
         memorySet(id,n.key,n.value);
@@ -208,6 +227,9 @@ wss.on('connection',function(ws) {
         console.log("request field is missing")
       }
       else {
+        if(n.request == "write") {
+          write(n.key,n.value);
+        }
         if(n.request == "dump") {
           // request complete dump of entire shared memory
           memoryDump(ws);
@@ -290,18 +312,25 @@ if(oscPort != null) {
       all(name,m.args);
       console.log("/all " + name + " " + m.args);
     }
-    if(m.address == "/load") {
+    else if(m.address == "/load") {
       load(m.args[0]);
       console.log("/load " + m.args[0]);
     }
-    if(m.address == "/refresh") {
+    else if(m.address == "/refresh") {
       refresh();
       console.log("/refresh");
     }
-    if(m.address == "/folder") {
+    else if(m.address == "/folder") {
       setFolder(m.args[0]);
       console.log("/folder " + m.args[0]);
     }
+    else if(m.address == "/write") {
+      write(m.args[0],m.args[1]);
+    }
+    else if(m.address == "/read") {
+      console.log("SORRY! OSC responses are not implemented yet (responding to /read)");
+    }
+
   });
 }
 
