@@ -15,12 +15,24 @@ function apertLog(x) {
   }
 }
 
+function apertRequest(request,args) {
+  // this is a convenience function used by other functions that make requests
+  // to the apert server
+  args.request = request;
+  ws.send(JSON.stringify(args));
+}
+
 function apertMemorySet(key,value) {
   // call this in your code to set a key-value pair in a shared memory
   // entries are unique to each client/browser
-  var m = { request: 'set', key: key, value: value};
-  var n = JSON.stringify(m);
-  ws.send(n);
+  apertRequest('set',{key:key,value:value});
+}
+
+function apertGlobalRead(key) {
+  // call this in your code to request an update on the value of a given
+  // entry in a global dictionary of Strings
+  // to catch the response, implement the hook function apertReceivedRead(key,value)
+  apertRequest('read',{key:key});
 }
 
 // the function below is called automatically when the document in a client
@@ -62,6 +74,13 @@ function apertStartWebSocket() {
       apertLog("/sendTo " + data.value);
       if (typeof apertReceivedSendTo == 'function') {
         apertReceivedSendTo(data.value);
+      }
+    }
+    else if(data.type == 'read') {
+      // implement the function apertReceivedRead in order to catch the response
+      // to read requests issues with apertGlobalRead
+      if (typeof apertReceivedRead == 'function') {
+        apertReceivedRead(data.key,data.value);
       }
     }
     else if(data.type == 'all') {
