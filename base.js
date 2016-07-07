@@ -47,6 +47,13 @@ function apertStartWebSocket() {
   ws = new WebSocket(url);
   ws.onopen = function () {
     apertLog("websocket connection opened");
+    if (typeof apertWebSocketOpened == 'function') {
+      apertLog('calling apertWebSocketOpened...');
+      apertWebSocketOpened(); // call initializer function provided by specific loaded JavaScript
+      apertLog('returned from apertWebSocketOpened');
+    }else{
+      apertLog('There was no apertWebSocketOpened function. You can make one if you like!');
+    }
   };
   ws.onerror = function () {
     apertLog("ERROR opening websocket connection");
