@@ -225,11 +225,11 @@ wss.on('connection',function(ws) {
           catch(e) { console.log("exception in websocket send (responding to request: read)"); }
         }
       }
-      if(n.request == "set") {
+      else if(n.request == "set") {
         // set value in shared memory entry associated with sender of message
         memorySet(id,n.key,n.value);
       }
-      if(n.request == "get") {
+      else if(n.request == "get") {
         // get value in shared memory entry associated with sender of message
         memoryGet(ws,id,n.key);
       }
@@ -239,6 +239,7 @@ wss.on('connection',function(ws) {
             console.log("invalid password - request type: " + n.request);
           }
         }
+        else console.log("invalid password");
       }
       else if(n.request == null) {
         console.log("request field is missing")
