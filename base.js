@@ -56,7 +56,12 @@ function apertStartWebSocket() {
     }
   };
   ws.onerror = function () {
-    apertLog("ERROR opening websocket connection");
+    apertLog("ERROR in apert websocket connection");
+  };
+  ws.onclose = function () {
+    apertLog('apert websocket closed - retrying in 5 seconds...');
+    ws = null;
+    setTimeout(apertStartWebSocket,5000);
   };
   ws.onmessage = function (m) {
     var data = JSON.parse(m.data);
@@ -65,8 +70,8 @@ function apertStartWebSocket() {
       // but you can check it by evaluating "apertRefreshCount" at a web console
       // console.log("refreshCount = " + data.count);
       if(apertRefreshCount != null) {
-        if(data.count > apertRefreshCount) {
-          window.location.reload(true); // page version has increased so force reload from server
+        if(data.count != apertRefreshCount) {
+          window.location.reload(true); // page version has changed so force reload from server
         }
       }
       else apertRefreshCount = data.count;
