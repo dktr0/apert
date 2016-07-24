@@ -136,6 +136,19 @@ function write(key,value) {
   globalDocs[key] = value;
 }
 
+function writeInsert(key, pos, text) {
+  // note: will silently fail if key hasn't previously been set to a String
+  if(typeof globalDocs[key] == "string") {
+    globalDocs[key] = globalDocs[key].slice(0,pos) + text + globalDocs[key].slice(pos);
+  }
+}
+function writeDelete(key, pos) {
+  // note: will silently fail if key hasn't previously been set to a String
+  if(typeof globalDocs[key] == "string") {
+    globalDocs[key] = globalDocs[key].slice(0,pos) + globalDocs[key].slice(pos+1);
+  }
+}
+
 function read(key) {
   return globalDocs[key];
 }
@@ -221,7 +234,11 @@ wss.on('connection',function(ws) {
         memoryGet(ws,id,n.key);
       }
       else if(n.password != password) {
-        console.log("invalid password")
+        if(typeof n.request == "String") {
+          if(n.request.length < 64) {
+            console.log("invalid password - request type: " + n.request);
+          }
+        }
       }
       else if(n.request == null) {
         console.log("request field is missing")
@@ -229,6 +246,12 @@ wss.on('connection',function(ws) {
       else {
         if(n.request == "write") {
           write(n.key,n.value);
+        }
+        if(n.request == "writeInsert") {
+          writeInsert(n.key,n.pos,n.text);
+        }
+        if(n.request == "writeDelete") {
+          writeDelete(n.key,n.pos);
         }
         if(n.request == "dump") {
           // request complete dump of entire shared memory
