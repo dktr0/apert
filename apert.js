@@ -174,15 +174,16 @@ function getSocketForId(id) {
 // create WebSocket server
 var wss = new WebSocket.Server({server: server});
 wss.broadcast = function(data) {
-  for (var i in this.clients) {
+  for (let i of wss.clients) {
     try {
-      this.clients[i].send(data);
+      i.send(data);
     }
     catch(e) {
       console.log("warning: exception in websocket broadcast");
     }
   }
 };
+
 wss.on('connection',function(ws) {
   // var location = url.parse(ws.upgradeReq.url, true);
   var ip = ws.upgradeReq.connection.remoteAddress;
